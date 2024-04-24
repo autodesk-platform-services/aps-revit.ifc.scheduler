@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Autodesk.Forge;
-using Autodesk.Forge.Client;
-using RevitToIfcScheduler.Context;
 using RevitToIfcScheduler.Models;
 using Flurl;
 using Microsoft.AspNetCore.Http;
+using Autodesk.SDKManager;
+using Autodesk.Authentication;
+using Autodesk.Authentication.Model;
+using Mono.TextTemplating;
 
 namespace RevitToIfcScheduler.Utilities
 {
@@ -15,8 +16,7 @@ namespace RevitToIfcScheduler.Utilities
     {
         private static string TwoLeggedToken { get; set; }
         private static DateTime Expiration { get; set; }
-        private static TwoLeggedApi _twoLeggedApi = new TwoLeggedApi();
-        private static ThreeLeggedApi _threeLeggedApi = new ThreeLeggedApi();
+        private static readonly SDKManager _sdkManager = SdkManagerBuilder.Create().Build();
 
         public static async Task<string> GetTwoLeggedToken()
         {
@@ -26,17 +26,46 @@ namespace RevitToIfcScheduler.Utilities
             }
             else
             {
-                ApiResponse<dynamic> bearer =_twoLeggedApi.AuthenticateWithHttpInfo (AppConfig.ClientId, 
-                    AppConfig.ClientSecret, oAuthConstants.CLIENT_CREDENTIALS, 
-                    ScopeStringToArray(AppConfig.TwoLegScope)) ;
-                if ( bearer.StatusCode != 200 )
-                    throw new Exception ("Request failed! (with HTTP response " + bearer.StatusCode + ")") ;
+                try
+                {
+                    var authenticationClient = new AuthenticationClient(_sdkManager);
+                    var twoLeggedAuth = await authenticationClient.GetTwoLeggedTokenAsync(
+                        AppConfig.ClientId,
+                        AppConfig.ClientSecret,
+                        ScopeStringToArray(AppConfig.TwoLegScope)
+                    );
 
-                TwoLeggedToken = bearer.Data.access_token;
-                Expiration = DateTime.UtcNow.AddSeconds(bearer.Data.expires_in);
+                    TwoLeggedToken = twoLeggedAuth.AccessToken;
+                    Expiration = DateTime.UtcNow.AddSeconds(twoLeggedAuth.ExpiresIn.HasValue ? twoLeggedAuth.ExpiresIn.Value : 0);
 
-                return TwoLeggedToken;
+                    return TwoLeggedToken;
+                }
+                catch (AuthenticationApiException ex)
+                {
+                    throw new Exception("Request failed! (with HTTP response " + ex.HttpResponseMessage.StatusCode + ")");
+                }
             }
+        }
+
+        public static string GetAuthorizationURL(HttpContext httpContext, string state)
+        {
+            var redirectUrl = GetRedirectUrl(httpContext);
+            var authenticationClient = new AuthenticationClient(_sdkManager);
+
+            var strResponseType = Utils.GetEnumString(ResponseType.Code);
+            var scopes = ScopeStringToArray(AppConfig.ThreeLegScope);
+            var strScopes = String.Join(" ", scopes.Select(x => Utils.GetEnumString(x)));
+
+            string apsAuthUrl = authenticationClient.tokenApi.Authorize(
+                AppConfig.ClientId,
+                strResponseType,
+                redirectUrl,
+                state,
+                null,
+                strScopes
+            );
+
+            return apsAuthUrl;
         }
 
         public static async Task<ThreeLeggedToken> GetThreeLeggedTokenFromCode(string code, HttpContext httpContext)
@@ -44,18 +73,15 @@ namespace RevitToIfcScheduler.Utilities
             try
             {
                 var redirectUrl = GetRedirectUrl(httpContext);
-                var token = _threeLeggedApi.Gettoken(AppConfig.ClientId, AppConfig.ClientSecret,
-                    oAuthConstants.AUTHORIZATION_CODE,
-                    code, redirectUrl);
+                var authenticationClient = new AuthenticationClient(_sdkManager);
+                var threeLeggedToken = await authenticationClient.GetThreeLeggedTokenAsync(
+                    AppConfig.ClientId,
+                    AppConfig.ClientSecret,
+                    code,
+                    redirectUrl
+                );
 
-                
-                return new ThreeLeggedToken()
-                {
-                    AccessToken = token.access_token,
-                    RefreshToken = token.refresh_token,
-                    ExpiresIn = (int)token.expires_in,
-                    TokenType = token.token_type
-                };
+                return threeLeggedToken;
             }
             catch (Exception exception)
             {
@@ -67,22 +93,18 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var token = _threeLeggedApi.Refreshtoken(AppConfig.ClientId, AppConfig.ClientSecret,
-                    oAuthConstants.AUTHORIZATION_CODE,
-                    user.Refresh, ScopeStringToArray(AppConfig.ThreeLegScope));
-
-                var threeLeggedToken = new ThreeLeggedToken()
-                {
-                    AccessToken = token.access_token,
-                    RefreshToken = token.refresh_token,
-                    ExpiresIn = (int)token.expires_in,
-                    TokenType = token.token_type
-                };
+                var authenticationClient = new AuthenticationClient(_sdkManager);
+                var threeLeggedToken = await authenticationClient.GetRefreshTokenAsync(
+                    AppConfig.ClientId,
+                    AppConfig.ClientSecret,
+                    user.Refresh,
+                    ScopeStringToArray(AppConfig.ThreeLegScope)
+                );
 
                 user.Token = threeLeggedToken.AccessToken;
-                user.Refresh = threeLeggedToken.RefreshToken;
-                user.TokenExpiration = DateTime.UtcNow.AddSeconds(threeLeggedToken.ExpiresIn - 300);
-                
+                user.Refresh = threeLeggedToken._RefreshToken;
+                user.TokenExpiration = DateTime.UtcNow.AddSeconds(threeLeggedToken.ExpiresIn.HasValue ? threeLeggedToken.ExpiresIn.Value : 0);
+
                 revitIfcContext.Users.Update(user);
                 await revitIfcContext.SaveChangesAsync();
             }
@@ -98,27 +120,27 @@ namespace RevitToIfcScheduler.Utilities
                 .AppendPathSegments("api", "forge", "oauth", "callback");
         }
 
-        public static Scope[] ScopeStringToArray(string scopeString)
+        public static List<Scopes> ScopeStringToArray(string scopeString)
         {
             var scopeStrings = scopeString.Split(' ');
-            var scopes = new List<Scope>();
+            var scopes = new List<Scopes>();
 
-            if (scopeStrings.Contains("data:read")) scopes.Add(Scope.DataRead);
-            if (scopeStrings.Contains("data:write")) scopes.Add(Scope.DataWrite);
-            if (scopeStrings.Contains("data:create")) scopes.Add(Scope.DataCreate);
-            if (scopeStrings.Contains("data:search")) scopes.Add(Scope.DataSearch);
-            
-            if (scopeStrings.Contains("account:read")) scopes.Add(Scope.AccountRead);
-            if (scopeStrings.Contains("account:write")) scopes.Add(Scope.AccountWrite);
-            
-            if (scopeStrings.Contains("bucket:read")) scopes.Add(Scope.BucketRead);
-            if (scopeStrings.Contains("bucket:create")) scopes.Add(Scope.BucketCreate);
-            if (scopeStrings.Contains("bucket:update")) scopes.Add(Scope.BucketUpdate);
-            if (scopeStrings.Contains("bucket:delete")) scopes.Add(Scope.BucketDelete);
-            
-            if (scopeStrings.Contains("user:profileRead")) scopes.Add(Scope.UserProfileRead);
-            
-            return scopes.ToArray();
+            if (scopeStrings.Contains("data:read")) scopes.Add(Scopes.DataRead);
+            if (scopeStrings.Contains("data:write")) scopes.Add(Scopes.DataWrite);
+            if (scopeStrings.Contains("data:create")) scopes.Add(Scopes.DataCreate);
+            if (scopeStrings.Contains("data:search")) scopes.Add(Scopes.DataSearch);
+
+            if (scopeStrings.Contains("account:read")) scopes.Add(Scopes.AccountRead);
+            if (scopeStrings.Contains("account:write")) scopes.Add(Scopes.AccountWrite);
+
+            if (scopeStrings.Contains("bucket:read")) scopes.Add(Scopes.BucketRead);
+            if (scopeStrings.Contains("bucket:create")) scopes.Add(Scopes.BucketCreate);
+            if (scopeStrings.Contains("bucket:update")) scopes.Add(Scopes.BucketUpdate);
+            if (scopeStrings.Contains("bucket:delete")) scopes.Add(Scopes.BucketDelete);
+
+            if (scopeStrings.Contains("user:profileRead")) scopes.Add(Scopes.UserProfileRead);
+
+            return scopes;
         }
     }
 }

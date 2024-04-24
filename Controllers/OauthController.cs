@@ -10,17 +10,17 @@ using RevitToIfcScheduler.Utilities;
 
 namespace RevitToIfcScheduler.Controllers
 {
-    public class OauthController: ControllerBase
+    public class OauthController : ControllerBase
     {
-        
+
         public OauthController(Context.RevitIfcContext revitIfcContext)
         {
             RevitIfcContext = revitIfcContext;
         }
-         
+
         private Context.RevitIfcContext RevitIfcContext { get; set; }
-        
-        
+
+
         [HttpGet]
         [Route("api/forge/oauth/callback")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -35,22 +35,22 @@ namespace RevitToIfcScheduler.Controllers
                     var threeLeggedToken = await TokenManager.GetThreeLeggedTokenFromCode(code, HttpContext);
 
                     var sessionKey = Guid.NewGuid();
-                    
+
                     var user = new User()
                     {
                         HashedSessionKey = RevitToIfcScheduler.Models.User.ComputeSha256Hash(sessionKey.ToString()),
                         AutodeskId = "",
                         Token = threeLeggedToken.AccessToken,
                         Refresh = threeLeggedToken.RefreshToken,
-                        TokenExpiration = DateTime.UtcNow.AddSeconds(threeLeggedToken.ExpiresIn - 300)
+                        TokenExpiration = DateTime.UtcNow.AddSeconds(threeLeggedToken.ExpiresIn.HasValue ? threeLeggedToken.ExpiresIn.Value - 300 : 0)
                     };
 
                     await user.FetchAutodeskDetails();
-                    
+
                     RevitIfcContext.Users.Add(user);
                     await RevitIfcContext.SaveChangesAsync();
                     HttpContext.Response.Cookies.Append(AppConfig.AppId, sessionKey.ToString());
-                    
+
                     var redirectString = Base64Encoder.Decode(state);
                     return Redirect(redirectString);
                 }
@@ -58,7 +58,7 @@ namespace RevitToIfcScheduler.Controllers
                 {
                     return Unauthorized();
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -74,17 +74,9 @@ namespace RevitToIfcScheduler.Controllers
         {
             try
             {
-                var forgeAuthUrl = "https://developer.api.autodesk.com/authentication/v1/authorize"
-                    .SetQueryParams(new
-                    {
-                        client_id = AppConfig.ClientId,
-                        response_type = "code",
-                        redirect_uri = TokenManager.GetRedirectUrl(HttpContext),
-                        scope = AppConfig.ThreeLegScope,
-                        state = encodedRedirectUrl
-                    });
-                
-                return Ok(forgeAuthUrl.ToString());
+                var apsAuthUrl = TokenManager.GetAuthorizationURL(HttpContext, encodedRedirectUrl);
+
+                return Ok(apsAuthUrl.ToString());
             }
             catch (Exception ex)
             {
@@ -93,6 +85,6 @@ namespace RevitToIfcScheduler.Controllers
                 return BadRequest(msg);
             }
         }
-        
+
     }
 }

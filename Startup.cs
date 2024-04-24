@@ -38,6 +38,11 @@ namespace RevitToIfcScheduler
             AppConfig.Services = services;
             AppConfig.ClientId = Configuration.GetValue<string>("ClientId");
             AppConfig.ClientSecret = Configuration.GetValue<string>("ClientSecret");
+            if (string.IsNullOrEmpty(AppConfig.ClientId) || string.IsNullOrEmpty(AppConfig.ClientSecret))
+            {
+                throw new ApplicationException("Missing required app settings ClientId or ClientSecret.");
+            }
+
             AppConfig.LogPath = Configuration.GetValue<string>("LogPath") ?? Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             AppConfig.FilePath = Configuration.GetValue<string>("FilePath", "/Files");
             AppConfig.AppId = Configuration.GetValue<string>("AppId", "revit-to-ifc");
@@ -74,9 +79,12 @@ namespace RevitToIfcScheduler
                     AppConfig.SqlDB,
                     b => b.MigrationsAssembly(typeof(RevitIfcContext).Assembly.GetName().ToString())));
             
-            var dbContext = services.BuildServiceProvider().GetService<RevitIfcContext>();
-            dbContext.Database.Migrate();
-            dbContext.Dispose();
+            using(var dbContext = services.BuildServiceProvider().GetService<RevitIfcContext>())
+            {
+                dbContext.Database.EnsureCreated();
+                //Run migration when EF models have been changed.
+                //dbContext.Database.Migrate();
+            }
             
             //Add service for accessing current HttpContext
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
