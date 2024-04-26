@@ -1,4 +1,21 @@
-﻿using Microsoft.AspNetCore.DataProtection;
+﻿/////////////////////////////////////////////////////////////////////
+// Copyright (c) Autodesk, Inc. All rights reserved
+// Written by Developer Advocacy and Support
+//
+// Permission to use, copy, modify, and distribute this software in
+// object code form for any purpose and without fee is hereby granted,
+// provided that the above copyright notice appears in all copies and
+// that both that copyright notice and the limited warranty and
+// restricted rights notice below appear in all supporting
+// documentation.
+//
+// AUTODESK PROVIDES THIS PROGRAM "AS IS" AND WITH ALL FAULTS.
+// AUTODESK SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTY OF
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE.  AUTODESK, INC.
+// DOES NOT WARRANT THAT THE OPERATION OF THE PROGRAM WILL BE
+// UNINTERRUPTED OR ERROR FREE.
+/////////////////////////////////////////////////////////////////////
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,13 +26,13 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Autodesk.Forge;
-using RevitToIfcScheduler.Context;
-using RevitToIfcScheduler.Models;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Serilog;
+using Autodesk.SDKManager;
+using Autodesk.Authentication;
 
 namespace RevitToIfcScheduler.Models
 {
@@ -80,19 +97,20 @@ namespace RevitToIfcScheduler.Models
             set { EncryptedRefresh = AppConfig.DataProtector.Protect(value); }
         }
 
+        private static readonly SDKManager _sdkManager = SdkManagerBuilder.Create().Build();
+
         public async Task FetchAutodeskDetails()
         {
             try
             {
-                var api = new InformationalApi();
-                api.Configuration.AccessToken = Token;
-                var aboutMe = api.AboutMe();
-                if (aboutMe != null)
+                var authenticationClient = new AuthenticationClient(_sdkManager);
+                var response = await authenticationClient.GetUserInfoAsync(Token);
+                if (response != null)
                 {
-                    AutodeskId = aboutMe.userId;
-                    Email = aboutMe.emailId.ToLower();
-                    Name = aboutMe.firstName + " " + aboutMe.lastName;
-                    ProfilePicture = aboutMe.profileImages.sizeX40;
+                    AutodeskId = response.Sub;
+                    Email = response.Email;
+                    Name = response.Name ?? response.GivenName + " " + response.FamilyName;
+                    ProfilePicture = response.Picture;
                 }
             }
             catch (Exception exception)

@@ -1,4 +1,14 @@
 ﻿# Revit to IFC Scheduler
+![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
+![.NET](https://img.shields.io/badge/.NET%20-8.0-blue.svg)
+[![MIT](https://img.shields.io/badge/License-MIT-blue.svg)](http://opensource.org/licenses/MIT)
+
+[![OAuth2](https://img.shields.io/badge/OAuth2-v2-green.svg)](http://aps.autodesk.com/)
+[![Data-Management](https://img.shields.io/badge/Data%20Management-v1-green.svg)](http://aps.autodesk.com/)
+[![Model-Derivative](https://img.shields.io/badge/Model%20Derivative-v1-green.svg)](https://aps.autodesk.com/en/docs/acc/v1/reference/http/locations-nodes-GET/)
+[![ACC Account-Admin](https://img.shields.io/badge/ACC%20Account%20Admin-v1-green.svg)](https://aps.autodesk.com/en/docs/acc/v1/reference/http/locations-nodes-GET/)
+
+[![Advanced](https://img.shields.io/badge/Level-Advanced-red.svg)](http://aps.autodesk.com/)
 
 ### Contents
 
@@ -62,7 +72,7 @@ git clone https://github.com/Autodesk-Forge/forge-revit.ifc.scheduler.git
 
 * **Visual Studio Code** (Windows, MacOS):
 
-    Open the folder, at the bottom-right, select **Yes** and **Restore**. This restores the packages (e.g. Autodesk.Forge) and creates the launch.json file.
+    Open the folder, at the bottom-right, select **Yes** and **Restore**. This restores the packages (e.g. Autodesk.SdkManager, Autodesk.Authentication, Autodesk.DataManagement, Autodesk.ModelDerivative, Autodesk.Oss, etc.) and creates the launch.json file.
 
     Afterward, find [appsettings.template.json](appsettings.template.json) in the explore window, copy and rename it to `appsettings.Development.json`.
 
@@ -76,7 +86,7 @@ Edit the `appsettings.Development.json` file, adding your Forge Client ID, Secre
   "ClientSecret": "your secret here",
   "AdminEmails": "your admin user emails here",
   "ConnectionStrings": {
-    "SqlDB": "your sql server connection string here: e.g. Server=localhost;Database=RevitIFCScheduler;User=sa;Password=...;"
+    "SqlDB": "your sql server connection string here: e.g. Server=localhost;Database=RevitIFCScheduler;User=sa;Password=...;TrustServerCertificate=True;"
   }
 }
 ```

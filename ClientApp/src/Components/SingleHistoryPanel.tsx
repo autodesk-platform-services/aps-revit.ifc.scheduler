@@ -32,12 +32,16 @@ export const SingleHistoryPanel = observer(()=>{
         //eslint-disable-next-line
     }, [project, conversionJobId, project?.offset])
 
-    const topFolder = project?.folders[0];
-    const topFolderWebViewUrl = topFolder?.webView;
-    const webViewBaseUrl = topFolderWebViewUrl?.split('/folders/')[0];
-    const webViewUrl = webViewBaseUrl ?
-        `${webViewBaseUrl}/folders/${conversionJob?.folderId}/detail` :
-            `https://docs.b360.autodesk.com/projects/${conversionJob?.projectId.replace('b.', '')}/folders/${conversionJob?.folderId}/detail`;
+    // const topFolder = project?.folders[0];
+    // const topFolderWebViewUrl = topFolder?.webView;
+    // const webViewBaseUrl = topFolderWebViewUrl?.split('/folders/')[0];
+    // console.log(webViewBaseUrl);
+    // console.log(`${webViewBaseUrl}/folders/${conversionJob?.folderId}/detail`);
+    // console.log(`${conversionJob?.folderUrl}`);
+    // const webViewUrl = webViewBaseUrl ?
+    //     `${webViewBaseUrl}/folders/${conversionJob?.folderId}/detail` :
+    //         `${conversionJob?.folderUrl}`;
+    const webViewUrl = conversionJob?.folderUrl;
 
     if(!project){
         return <Page404/>
@@ -48,7 +52,7 @@ export const SingleHistoryPanel = observer(()=>{
             <header style={{padding: '10px'}}>
                 <h2>{project?.name} > {conversionJob?.fileName}</h2>
                 <a style={{marginLeft: '50px'}} target={"_blank"} rel={"noreferrer"} href={webViewUrl}>
-                    <DefaultButton text={"Folder in BIM 360"}/>
+                    <DefaultButton text={"Folder in ACC/BIM360"}/>
                 </a>
                 <div className={"flexFiller"}/>
 

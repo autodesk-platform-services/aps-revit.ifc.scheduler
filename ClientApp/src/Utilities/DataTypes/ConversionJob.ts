@@ -16,6 +16,7 @@ export interface IConversionJob{
     fileUrn: string;
     projectId: string;
     folderId: string;
+    folderUrl: string;
     fileName: string;
     itemId: string;
     jobCreated: string;
@@ -32,6 +33,7 @@ export class ConversionJob{
     public readonly schedule?: Schedule;
     public readonly projectId: string;
     public readonly folderId: string;
+    public readonly folderUrl: string;
     public readonly fileUrn: string;
     public readonly fileName: string;
     public readonly itemId: string;
@@ -48,6 +50,7 @@ export class ConversionJob{
         this.schedule = props.schedule ? new Schedule(props.schedule, project) : undefined;
         this.fileUrn = props.fileUrn;
         this.folderId = props.folderId;
+        this.folderUrl = props.folderUrl;
         this.projectId = props.projectId;
         this.fileName = props.fileName;
         this.itemId = props.itemId;

@@ -1,11 +1,26 @@
+/////////////////////////////////////////////////////////////////////
+// Copyright (c) Autodesk, Inc. All rights reserved
+// Written by Developer Advocacy and Support
+//
+// Permission to use, copy, modify, and distribute this software in
+// object code form for any purpose and without fee is hereby granted,
+// provided that the above copyright notice appears in all copies and
+// that both that copyright notice and the limited warranty and
+// restricted rights notice below appear in all supporting
+// documentation.
+//
+// AUTODESK PROVIDES THIS PROGRAM "AS IS" AND WITH ALL FAULTS.
+// AUTODESK SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTY OF
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE.  AUTODESK, INC.
+// DOES NOT WARRANT THAT THE OPERATION OF THE PROGRAM WILL BE
+// UNINTERRUPTED OR ERROR FREE.
+/////////////////////////////////////////////////////////////////////
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RevitToIfcScheduler.Context;
-using RevitToIfcScheduler.Models;
-using Hangfire;
-using Hangfire.Dashboard;
-using Hangfire.SqlServer;
+using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -15,11 +30,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.SqlServer;
 using Serilog;
-using RevitToIfcScheduler.Utilities;
 using Newtonsoft.Json.Serialization;
-using System.IO;
-using System.Reflection;
+using RevitToIfcScheduler.Context;
+using RevitToIfcScheduler.Models;
+using RevitToIfcScheduler.Utilities;
 
 namespace RevitToIfcScheduler
 {

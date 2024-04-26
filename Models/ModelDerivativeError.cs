@@ -1,4 +1,4 @@
-﻿/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 // Copyright (c) Autodesk, Inc. All rights reserved
 // Written by Developer Advocacy and Support
 //
@@ -16,11 +16,13 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
+using Newtonsoft.Json;
+
 namespace RevitToIfcScheduler.Models
 {
-    public class Folder : Base
+    public class ModelDerivativeError
     {
-        public string Type { get; } = "folder";
-        public string WebView { get; set; } = null;
+        [JsonProperty("diagnostic")]
+        public string Diagnostic { get; set; }
     }
 }
