@@ -43,7 +43,7 @@ using File = RevitToIfcScheduler.Models.File;
 namespace RevitToIfcScheduler.Utilities
 {
 
-    public static class Forge
+    public static class APS
     {
         private static readonly SDKManager _sdkManager = SdkManagerBuilder.Create().Build();
         private static readonly string _localTempFolder = Path.Combine(Directory.GetCurrentDirectory(), "tmp");
@@ -86,7 +86,7 @@ namespace RevitToIfcScheduler.Utilities
                 // Todo: replace codes with new SDK after contents data has the `links.webView` field.
                 var children = new List<Base>();
 
-                var url = $"{AppConfig.ForgeBaseUrl}/data/v1/projects/{projectId}/folders/{folderId}/contents";
+                var url = $"{AppConfig.ApsBaseUrl}/data/v1/projects/{projectId}/folders/{folderId}/contents";
                 while (true)
                 {
                     var data = await url
@@ -195,7 +195,7 @@ namespace RevitToIfcScheduler.Utilities
             try
             {
                 var token = await new TwoLeggedTokenGetter().GetToken();
-                var url = $"{AppConfig.ForgeBaseUrl}/oss/v2/buckets/{bucketKey}/details";
+                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets/{bucketKey}/details";
 
                 var response = await url
                     .WithOAuthBearerToken(token)
@@ -228,7 +228,7 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var url = $"{AppConfig.ForgeBaseUrl}/oss/v2/buckets";
+                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets";
                 var body = new
                 {
                     bucketKey,
@@ -293,7 +293,7 @@ namespace RevitToIfcScheduler.Utilities
                 var token = await new TwoLeggedTokenGetter().GetToken();
                 // var sourceStorageLocation =
                 //     await GetItemStorageLocation(conversionJob.ProjectId, conversionJob.ItemId, token);
-                // var targetStorageLocation = $"{AppConfig.ForgeBaseUrl}/oss/v2/buckets/{AppConfig.BucketKey}/objects/{objectName}";
+                // var targetStorageLocation = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets/{AppConfig.BucketKey}/objects/{objectName}";
 
                 //Return objectID
                 // var objectId = await MoveFileFromDmToOss(sourceStorageLocation, targetStorageLocation, token, conversionJob, revitIfcContext);
@@ -446,7 +446,7 @@ namespace RevitToIfcScheduler.Utilities
                 {
                     TokenGetter tokenGetter = new TwoLeggedTokenGetter();
                     var token = await tokenGetter.GetToken();
-                    var folderData = await Forge.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
+                    var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
                     conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
                 }
 

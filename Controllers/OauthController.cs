@@ -40,7 +40,7 @@ namespace RevitToIfcScheduler.Controllers
 
 
         [HttpGet]
-        [Route("api/forge/oauth/callback")]
+        [Route("api/aps/oauth/callback")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -85,7 +85,7 @@ namespace RevitToIfcScheduler.Controllers
             }
         }
         [HttpGet]
-        [Route("api/forge/oauth/url")]
+        [Route("api/aps/oauth/url")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult GetOAuthURL([FromQuery] string encodedRedirectUrl)

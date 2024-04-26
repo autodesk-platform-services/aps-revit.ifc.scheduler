@@ -80,7 +80,7 @@ namespace RevitToIfcScheduler.Models
 
             var schedule = await revitIfcContext.Schedules.FindAsync(id);
 
-            var filesFromFolders = await Forge.GetAllChildRevitFiles(schedule.ProjectId, schedule.FolderUrns, new TwoLeggedTokenGetter());
+            var filesFromFolders = await APS.GetAllChildRevitFiles(schedule.ProjectId, schedule.FolderUrns, new TwoLeggedTokenGetter());
 
             foreach (var file in schedule.Files)
             {

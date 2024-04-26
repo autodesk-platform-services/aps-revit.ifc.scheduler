@@ -41,7 +41,7 @@ namespace RevitToIfcScheduler.Utilities
                 var conversionJob = await _revitIfcContext.ConversionJobs.FindAsync(conversionJobId);
 
                 var token = await new TwoLeggedTokenGetter().GetToken();
-                var manifest = await Forge.GetModelDerivativeManifest(conversionJob.EncodedStorageUrn, token, conversionJob.Region);
+                var manifest = await APS.GetModelDerivativeManifest(conversionJob.EncodedStorageUrn, token, conversionJob.Region);
 
                 if (manifest == null)
                 {

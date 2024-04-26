@@ -134,7 +134,7 @@ namespace RevitToIfcScheduler.Utilities
         public static string GetRedirectUrl(HttpContext httpContext)
         {
             return ((httpContext.Request.IsHttps ? "https://" : "http://") + httpContext.Request.Host.ToUriComponent())
-                .AppendPathSegments("api", "forge", "oauth", "callback");
+                .AppendPathSegments("api", "aps", "oauth", "callback");
         }
 
         public static List<Scopes> ScopeStringToArray(string scopeString)

@@ -15,7 +15,7 @@ import {IConversionJob} from "./DataTypes/ConversionJob";
 export class ApiCalls{
     //Auth Calls
     public static fetchAuthUrl(){
-        return SimpleGet<string>(`/api/forge/oauth/url?encodedRedirectUrl=${btoa(window.location.href)}`);
+        return SimpleGet<string>(`/api/aps/oauth/url?encodedRedirectUrl=${btoa(window.location.href)}`);
     }
     public static fetchUser(){
         return SimpleGet<IUser>(`/api/auth/user`);
@@ -45,7 +45,7 @@ export class ApiCalls{
     }
     //Webhooks
     // public static postWebhooks(){
-    //     return SimplePost<string>(`/api/forge/webhooks/create`, {});
+    //     return SimplePost<string>(`/api/aps/webhooks/create`, {});
     // }
 
     //Timezones
@@ -59,18 +59,18 @@ export class ApiCalls{
     public static DeleteAccount({account}: {account: Account}){
         return SimpleDelete<void>(`/api/accounts/${account.id}`);
     }
-    //Forge
-    public static GetForgeAccounts(){
-        return SimpleGet<IAccount[]>(`/api/forge/accounts`);
+    //APS
+    public static GetApsAccounts(){
+        return SimpleGet<IAccount[]>(`/api/aps/accounts`);
     }
-    public static GetForgeProjects(){
-        return SimpleGet<IProject[]>(`/api/forge/projects`);
+    public static GetApsProjects(){
+        return SimpleGet<IProject[]>(`/api/aps/projects`);
     }
-    public static GetForgeTopFolders({project}: {project: Project}){
-        return SimpleGet<ITreeBase[]>(`/api/forge/accounts/${project.hubId}/projects/${project.projectId}/topFolders`);
+    public static GetApsTopFolders({project}: {project: Project}){
+        return SimpleGet<ITreeBase[]>(`/api/aps/accounts/${project.hubId}/projects/${project.projectId}/topFolders`);
     }
-    public static GetForgeFolder({folder}: {folder: Folder}){
-        return SimpleGet<(ITreeBase | IFile)[]>(`/api/forge/projects/${folder.project.projectId}/folders/${folder.id}`);
+    public static GetApsFolder({folder}: {folder: Folder}){
+        return SimpleGet<(ITreeBase | IFile)[]>(`/api/aps/projects/${folder.project.projectId}/folders/${folder.id}`);
     }
     //Schedules
     public static GetProjectSchedule({project}: {project: Project}){

@@ -61,7 +61,7 @@ export class Folder extends TreeBase{
 
     @action.bound public fetch(): Promise<TreeBase[]>{
         return new Promise((resolve, reject)=>{
-            ApiCalls.GetForgeFolder({folder: this})
+            ApiCalls.GetApsFolder({folder: this})
                 .then(results=>{
                     runInAction(()=>{
                         this._children = results.map(val=>{

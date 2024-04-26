@@ -88,7 +88,7 @@ export class Project{
     public getFolders(){
         this.getSchedules();
 
-        ApiCalls.GetForgeTopFolders({project: this})
+        ApiCalls.GetApsTopFolders({project: this})
             .then((folders)=> {
                 const folderObjects = folders
                     .map(val=>new Folder({...val, project: this}))

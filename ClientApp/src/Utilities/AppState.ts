@@ -96,14 +96,14 @@ export class AppState{
     }
 
     private fetchAccounts(){
-        return ApiCalls.GetForgeAccounts()
+        return ApiCalls.GetApsAccounts()
             .then((accounts)=>{
                 runInAction(()=>{this.accounts = accounts.map(account=>new Account(account))})
             })
     }
 
     private fetchProjects(){
-        return ApiCalls.GetForgeProjects()
+        return ApiCalls.GetApsProjects()
             .then((projects)=>{
                 runInAction(()=>{
                     this.projects = projects

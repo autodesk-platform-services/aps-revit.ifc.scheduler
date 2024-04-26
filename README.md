@@ -22,13 +22,13 @@
 
 ## Description
 
-This code sample demonstrates the usage of Model Derivative API, which allows you to convert a Revit `.rvt` file stored in BIM 360 Docs to `.ifc` format.
+This code sample demonstrates the usage of Model Derivative API, which allows you to convert a Revit `.rvt` file stored in ACC/BIM360 Docs to `.ifc` format.
 
-The [IFC file format](https://technical.buildingsmart.org/standards/ifc/) is a common transfer format used throughout the world, and consumed by a wide range of applications. You can use this tool to automate tasks to convert Revit Files hosted in BIM 360 Docs to IFC on a recurring basis.
+The [IFC file format](https://technical.buildingsmart.org/standards/ifc/) is a common transfer format used throughout the world, and consumed by a wide range of applications. You can use this tool to automate tasks to convert Revit Files hosted in ACC/BIM360 Docs to IFC on a recurring basis.
 
-Users choose either folders or specific files, then choose an IFC Settings Set name, and set a schedule on which the folders or files should be converted to IFC. At the scheduled time,  the application creates [model derivative](https://forge.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/) jobs for each file, and uploads the IFC file into the same folder as the original Revit file. If the Revit file and IFC Settings Set name have not changed since the last conversion, no job will be created.
+Users choose either folders or specific files, then choose an IFC Settings Set name, and set a schedule on which the folders or files should be converted to IFC. At the scheduled time,  the application creates [model derivative](https://aps.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/) jobs for each file, and uploads the IFC file into the same folder as the original Revit file. If the Revit file and IFC Settings Set name have not changed since the last conversion, no job will be created.
 
-**Note.** [Model Derivate API](https://forge.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/) incurs cost. To view the current cost of the Model Derivative service, and to purchase Cloud Credits for file conversions, please view the [Forge Pricing page](https://forge.autodesk.com/pricing#cloud-credits).
+**Note.** [Model Derivate API](https://aps.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/) incurs cost. To view the current cost of the Model Derivative service, and to purchase Cloud Credits for file conversions, please view the [APS Pricing page](https://aps.autodesk.com/pricing#cloud-credits).
 
 
 ## Thumbnail
@@ -37,7 +37,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 
 ## Limitations
 
-* This application will only work on Revit files that are uploaded directly to BIM 360 Docs / Autodesk Docs, or published models from cloud worksharing.
+* This application will only work on Revit files that are uploaded directly to ACC/BIM360 Docs / Autodesk Docs, or published models from cloud worksharing.
 
 
 ## Setup
@@ -54,14 +54,14 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
     * [Azure SQL](https://azure.microsoft.com/en-us/products/azure-sql/)
     * [Amazon RDS for SQL Server](https://aws.amazon.com/rds/sqlserver/)
 * Basic knowledge of C#
-* Autodesk Forge App provisioned to your BIM 360 account
+* Autodesk APS App provisioned to your ACC/BIM360 account
 
 ### Running locally
 
 Clone this project or download it. It's recommended to install [GitHub desktop](https://desktop.github.com/). To clone it via command line, use the following (**Terminal** on MacOSX/Linux, **Git Shell** on Windows):
 
 ```bash
-git clone https://github.com/Autodesk-Forge/forge-revit.ifc.scheduler.git
+git clone https://github.com/autodesk-platform-services/aps-revit.ifc.scheduler.git
 ```
 
 * **Visual Studio** (Windows):
@@ -78,7 +78,7 @@ git clone https://github.com/Autodesk-Forge/forge-revit.ifc.scheduler.git
 
 ![Visual Studio Code](.readme/VSCode.png "Visual Studio Code")
 
-Edit the `appsettings.Development.json` file, adding your Forge Client ID, Secret, emails for Application Admins, and your SQL Database connection string.
+Edit the `appsettings.Development.json` file, adding your APS Client ID, Secret, emails for Application Admins, and your SQL Database connection string.
 
 ```json
 {
@@ -97,8 +97,8 @@ Run the app. Open `http://localhost:3000` in your browser to view the applicatio
 
 Name | Description | Example Value
 --- | --- | ---
-ForgeClientId | From the Forge App created during Setup | _CL35ag54e6aghsaf4cacwe_
-ForgeClientSecret | From the Forge App created during Setup | _aa46asffaws_
+ClientId | From the APS App created during Setup | _CL35ag54e6aghsaf4cacwe_
+ClientSecret | From the APS App created during Setup | _aa46asffaws_
 AdminEmails | Semicolon-separated list of email addresses | _admin@mycompany.com;bimmanager@mycompany.com_
 ConnectionStrings.SqlDB | A SQL connection String |  _Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0_
 
@@ -111,10 +111,10 @@ SendGridApiKey | If email notifications are desired, an API key from SendGrid sh
 FromEmail | The email address that SendGrid should attempt to put into the 'From' field | _null_
 ToEmail | The email address that SendGrid should attempt to put into the 'To' field | _null_
 LogPath | The specific path where log files should be stored | _null_
-IncludeShallowCopies | Copying a file in BIM 360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
-TwoLegScope | The Forge scopes used by two legged tokens | data:read data:create account:read
-ThreeLegScope | The Forge scopes used by three legged tokens | user:read data:read
-ForgeBaseUrl | The root URL used to connect to the Forge platform | https://developer.api.autodesk.com
+IncludeShallowCopies | Copying a file in ACC/BIM360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
+TwoLegScope | The APS scopes used by two legged tokens | data:read data:create account:read
+ThreeLegScope | The APS scopes used by three legged tokens | user:read data:read
+ApsBaseUrl | The root URL used to connect to the APS platform | https://developer.api.autodesk.com
 
 ### Deployment Steps
  
@@ -128,9 +128,9 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Initial Setup
 
 1. Navigate to the tool using your browser.
-2. Log in using your BIM 360 account (your email address must be included in the AdminEmails Environment Setting)
+2. Log in using your ACC/BIM360 account (your email address must be included in the AdminEmails Environment Setting)
 3. Navigate to Settings by clicking `Settings` in the top right corner
-4. Toggle on the desired BIM 360 accounts. 
+4. Toggle on the desired ACC/BIM360 accounts. 
 5. Add an IFC Settings Set Name using the `Add IFC Settings Set Name` button.
 
     **Note.** Check out `What does an IFC Settings Set Contain?` in the [Further Reading](#further-reading) section, if you don't know what it is.
@@ -138,7 +138,7 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Creating a one-off conversion to IFC
 
 1. Navigate to the tool using your browser.
-2. Log in using your BIM 360 account.
+2. Log in using your ACC/BIM360 account.
 3. Choose a project on the left-hand side.
 4. Navigate through the folder tree until you see the desired folders or files.
 5. Select the checkboxes next to the desired folders or files.
@@ -150,7 +150,7 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Creating a scheduled conversion to IFC
 
 1. Navigate to the tool using your browser.
-2. Log in using your BIM 360 account.
+2. Log in using your ACC/BIM360 account.
 3. Choose a project on the left-hand side.
 4. Navigate through the folder tree until you see the desired folders or files.
 5. Select the checkboxes next to the desired folders or files.
@@ -172,28 +172,28 @@ Name | Description
 --- | ---
 Created | The IFC conversion job is created and enqueued successfully.
 Processing | The Revit model has been sent to the Model Derivative service, and is being converted to IFC.
-Converted | The model has been converted to IFC, but has not yet been uploaded to BIM 360 Docs.
+Converted | The model has been converted to IFC, but has not yet been uploaded to ACC/BIM360 Docs.
 Success | The status of the IFC conversion job is success and has been uploaded to the BIM360 Docs folder where the source Revit file is.
 Failed | The conversion or upload could not be completed. Please click the conversion record for more details.
 Unchanged | This model has previously been converted to IFC using the same IFC setting set. No additional conversion is required.
 ShallowCopy | The selected Revit file is a copy, rather than an uploaded file. To convert this file, set `AllowShallowCopies` to `true` in your [App Settings Variables](#app-settings-variables).
-TimeOut | The Forge Model Derivative service has returned a [timeout error](https://forge.autodesk.com/en/docs/model-derivative/v2/reference/http/urn-manifest-GET/#body-structure-200).
+TimeOut | The APS Model Derivative service has returned a [timeout error](https://aps.autodesk.com/en/docs/model-derivative/v2/reference/http/urn-manifest-GET/#body-structure-200).
 
 
 # Further Reading
 
 Documentation:
 
-- [BIM 360 API](https://forge.autodesk.com/en/docs/bim360/v1/overview/) and [App Provisioning](https://forge.autodesk.com/blog/bim-360-docs-provisioning-forge-apps)
+- [ACC/BIM360 API](https://aps.autodesk.com/en/docs/bim360/v1/overview/) and [App Provisioning](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps)
 - [Data Management API](https://developer.autodesk.com/en/docs/data/v2/overview/)
-- [Model Derivative API](https://forge.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/)
+- [Model Derivative API](https://aps.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/)
 
 Related knowledge:
 
 - [What is IFC?](https://bimconnect.org/en/software/what-is-ifc/)
 - [About Revit and IFC](https://knowledge.autodesk.com/support/revit/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/Revit-DocumentPresent/files/GUID-6708CFD6-0AD7-461F-ADE8-6527423EC895-htm.html)
 - [What does an IFC Settings Set Contain?](https://knowledge.autodesk.com/support/revit/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/Revit-DocumentPresent/files/GUID-E029E3AD-1639-4446-A935-C9796BC34C95-htm.html)
-    - The name list of Revit built-in IFC export settings (since Revit 2017) of Forge Model Derivative service:
+    - The name list of Revit built-in IFC export settings (since Revit 2017) of APS Model Derivative service:
         - IFC2x3 Coordination View 2.0
         - IFC2x3 Coordination View
         - IFC2x3 GSA Concept Design BIM 2010
@@ -220,7 +220,7 @@ When this is done, an additional language code will be shown in the header bar o
 
 ###### Shallow Copies
 
-When a file is 'shallow copied', and BIM 360 makes a reference to a file that's already claimed by another BIM360 file, it can't be processed via the Model Derivative service. This happens within 'Shared' folders, and when a user makes use of the 'copy' function. The `IncludeShallowCopies` optional environment setting allows us to get around this, by making a copy of the file on OSS, then translating that instead.
+When a file is 'shallow copied', and ACC/BIM360 makes a reference to a file that's already claimed by another BIM360 file, it can't be processed via the Model Derivative service. This happens within 'Shared' folders, and when a user makes use of the 'copy' function. The `IncludeShallowCopies` optional environment setting allows us to get around this, by making a copy of the file on OSS, then translating that instead.
 
 ###### Modifying the Database
 
@@ -230,8 +230,8 @@ When the tables are modified in the Data project, you will need to create a new 
 
 ### Troubleshooting
 
-1. **Cannot see my BIM 360 projects**:
-    * Make sure to provision the Forge App Client ID within the BIM 360 Account, [learn more here](https://forge.autodesk.com/blog/bim-360-docs-provisioning-forge-apps). (This requires the Account Admin permission)
+1. **Cannot see my ACC/BIM360 projects**:
+    * Make sure to provision the APS App Client ID within the ACC/BIM360 Account, [learn more here](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps). (This requires the Account Admin permission)
     * Also, check **section 2.1 Login** and **section 2.3.1 Enabling a BIM360 account** of [UserGuide.pdf](UserGuide.pdf) for instructions.
 
 2. **Received Microsoft.Data.SqlClient.SqlException while starting this app**: if it indicates that `there is already an object named 'XXXXX' in the database`, then this means the database you specified in `appsetings.json` is not empty. You can fix it by doing either of the below ways:
@@ -249,4 +249,4 @@ This application is licensed under Apache 2.0. For details, please see [LICENSE.
 ## Written By
 
 * Daniel Clayson, Global Consulting Delivery Team, Autodesk
-* Reviewed and maintained by Eason Kang [@yiskang](https://twitter.com/yiskang), [Forge Partner Development](http://forge.autodesk.com)
+* Reviewed and maintained by Eason Kang [in/eason-kang-b4398492](https://www.linkedin.com/in/eason-kang-b4398492), [Developer Advocate](http://aps.autodesk.com)

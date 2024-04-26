@@ -33,10 +33,10 @@ using RevitToIfcScheduler.Utilities;
 
 namespace RevitToIfcScheduler.Controllers
 {
-    public class ForgeController: ControllerBase
+    public class ApsController: ControllerBase
     {
         
-        public ForgeController(Context.RevitIfcContext revitIfcContext)
+        public ApsController(Context.RevitIfcContext revitIfcContext)
         {
             RevitIfcContext = revitIfcContext;
         }
@@ -46,11 +46,11 @@ namespace RevitToIfcScheduler.Controllers
         
         
         [HttpGet]
-        [Route("api/forge/accounts")]
+        [Route("api/aps/accounts")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetForgeAccounts()
+        public async Task<ActionResult> GetApsAccounts()
         {
             try
             {
@@ -98,11 +98,11 @@ namespace RevitToIfcScheduler.Controllers
         }
         
         [HttpGet]
-        [Route("api/forge/projects")]
+        [Route("api/aps/projects")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetForgeProjects()
+        public async Task<ActionResult> GetApsProjects()
         {
             try
             {
@@ -175,18 +175,18 @@ namespace RevitToIfcScheduler.Controllers
         }
         
         [HttpGet]
-        [Route("api/forge/accounts/{hubId}/projects/{projectId}/topFolders")]
+        [Route("api/aps/accounts/{hubId}/projects/{projectId}/topFolders")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetForgeProjectTopFolders(string hubId, string projectId)
+        public async Task<ActionResult> GetApsProjectTopFolders(string hubId, string projectId)
         {
             try
             {
                 if (!Authentication.IsAuthorized(HttpContext, RevitIfcContext, new List<AccountRole>(){AccountRole.AccountAdmin, AccountRole.ProjectAdmin, AccountRole.ApplicationAdmin}, projectId)) return Unauthorized();
 
                 var token = await GetProjectToken(HttpContext, RevitIfcContext, projectId);
-                var folders = await Forge.GetTopFolders(hubId, projectId, token);
+                var folders = await APS.GetTopFolders(hubId, projectId, token);
                 return Ok(folders);
             }
             catch (Exception ex)
@@ -197,18 +197,18 @@ namespace RevitToIfcScheduler.Controllers
         }
 
         [HttpGet]
-        [Route("api/forge/projects/{projectId}/folders/{folderId}")]
+        [Route("api/aps/projects/{projectId}/folders/{folderId}")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetForgeProjectFolderContents(string projectId, string folderId)
+        public async Task<ActionResult> GetApsProjectFolderContents(string projectId, string folderId)
         {
             try
             {
                 if (!Authentication.IsAuthorized(HttpContext, RevitIfcContext, new List<AccountRole>(){AccountRole.AccountAdmin, AccountRole.ProjectAdmin, AccountRole.ApplicationAdmin}, projectId)) return Unauthorized();
 
                 var token = await GetProjectToken(HttpContext, RevitIfcContext, projectId);
-                var contents = await Forge.GetFolderContents(projectId, folderId, token);
+                var contents = await APS.GetFolderContents(projectId, folderId, token);
                 var contentsToReturn = new List<Base>();
 
                 //Filter out any IFC files

@@ -31,11 +31,11 @@ namespace RevitToIfcScheduler.Utilities
 
             if (user.HasPermission(AccountRole.AccountAdmin, projectId))
             {
-                finalFiles = await Forge.GetAllChildRevitFiles(projectId, conversionBatch.FolderUrns,
+                finalFiles = await APS.GetAllChildRevitFiles(projectId, conversionBatch.FolderUrns,
                     new TwoLeggedTokenGetter());
             } else if (user.HasPermission(AccountRole.ProjectAdmin, projectId))
             {
-                finalFiles = await Forge.GetAllChildRevitFiles(projectId, conversionBatch.FolderUrns,
+                finalFiles = await APS.GetAllChildRevitFiles(projectId, conversionBatch.FolderUrns,
                     new ThreeLeggedTokenGetter(user, revitIfcContext));
             }
 
@@ -58,11 +58,11 @@ namespace RevitToIfcScheduler.Utilities
             {
                 if (schedule != null)
                 {
-                    await Forge.CreateIfcConversionJob(hubId, region, projectId, file.Id, file.ItemId, file.Name, file.FolderId, exportSettingName, createdBy, file.IsCompositeDesign, schedule.Id);
+                    await APS.CreateIfcConversionJob(hubId, region, projectId, file.Id, file.ItemId, file.Name, file.FolderId, exportSettingName, createdBy, file.IsCompositeDesign, schedule.Id);
                 }
                 else
                 {
-                    await Forge.CreateIfcConversionJob(hubId, region, projectId, file.Id, file.ItemId, file.Name, file.FolderId, exportSettingName, createdBy, file.IsCompositeDesign, null);
+                    await APS.CreateIfcConversionJob(hubId, region, projectId, file.Id, file.ItemId, file.Name, file.FolderId, exportSettingName, createdBy, file.IsCompositeDesign, null);
                 }
             }
         }

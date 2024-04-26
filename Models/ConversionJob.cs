@@ -65,9 +65,6 @@ namespace RevitToIfcScheduler.Models
         [JsonIgnore]
         public string DerivativeUrn { get; set; }
 
-        [JsonIgnore]
-        public string ForgeUrl { get; set; }
-
         [JsonProperty("jobCreated")]
         public DateTime JobCreated { get; set; }
 
@@ -159,7 +156,7 @@ namespace RevitToIfcScheduler.Models
                 if (string.IsNullOrWhiteSpace(conversionJob.FolderId))
                 {
                     conversionJob.AddLog($"Adding Folder ID ...");
-                    var folderData = await Forge.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
+                    var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
                     conversionJob.FolderId = folderData.Data.Id;
                     conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
 
@@ -171,7 +168,7 @@ namespace RevitToIfcScheduler.Models
                 if (string.IsNullOrWhiteSpace(conversionJob.FolderUrl))
                 {
                     conversionJob.AddLog($"Adding Folder Url ...");
-                    var folderData = await Forge.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
+                    var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
                     conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
 
                     conversionJob.AddLog($"Added Folder Url: {conversionJob.FolderUrl}");
@@ -183,7 +180,7 @@ namespace RevitToIfcScheduler.Models
                 if (conversionJob.DerivativeUrn == null)
                 {
                     conversionJob.AddLog($"Retrieving Derivative URN ...");
-                    conversionJob.DerivativeUrn = await Forge.GetIfcDerivativeUrn(conversionJob.FileUrn, token, conversionJob.Region);
+                    conversionJob.DerivativeUrn = await APS.GetIfcDerivativeUrn(conversionJob.FileUrn, token, conversionJob.Region);
 
                     conversionJob.AddLog($"Retrieved Derivative URN: {conversionJob.DerivativeUrn}");
                     revitIfcContext.ConversionJobs.Update(conversionJob);
@@ -192,7 +189,7 @@ namespace RevitToIfcScheduler.Models
 
                 //Create Storage Object
                 conversionJob.AddLog($"Creating Storage Location ...");
-                var storageLocation = await Forge.CreateStorageLocation(conversionJob.ProjectId, conversionJob.FolderId,
+                var storageLocation = await APS.CreateStorageLocation(conversionJob.ProjectId, conversionJob.FolderId,
                     conversionJob.DerivativeUrn, token);
                 conversionJob.AddLog($"Created Storage Location: {storageLocation}");
 
@@ -201,7 +198,7 @@ namespace RevitToIfcScheduler.Models
                                 ? conversionJob.EncodedFileUrn
                                 : conversionJob.EncodedInputStorageLocation;
 
-                var objectId = await Forge.PassDownloadToStorageLocation(conversionJob.DerivativeUrn,
+                var objectId = await APS.PassDownloadToStorageLocation(conversionJob.DerivativeUrn,
                     urn,
                     storageLocation,
                     conversionJob,
@@ -216,23 +213,23 @@ namespace RevitToIfcScheduler.Models
                 //              .Replace(@"\", "");
 
                 //Look for IFC file with same name as revit file in the same folder
-                var existingVersion = await Forge.GetExistingVersion(conversionJob.ProjectId, conversionJob.FolderId,
+                var existingVersion = await APS.GetExistingVersion(conversionJob.ProjectId, conversionJob.FolderId,
                     conversionJob.FileName, suffix, token);
 
 
                 if (existingVersion == null)
                 {
                     conversionJob.AddLog($"Creating First Version of File ...");
-                    //If exists, create new version https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-versions-POST/
-                    await Forge.CreateFirstVersion(conversionJob.ProjectId, conversionJob.FolderId, objectId,
+                    //If exists, create new version https://aps.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-versions-POST/
+                    await APS.CreateFirstVersion(conversionJob.ProjectId, conversionJob.FolderId, objectId,
                         conversionJob.FileName, suffix, token);
                     conversionJob.AddLog($"Created First Version of File");
                 }
                 else
                 {
                     conversionJob.AddLog($"Found an existing file with same name. Creating Next Version of File ...");
-                    //Otherwise, create item https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-POST/
-                    await Forge.CreateSubsequentVersion(conversionJob.ProjectId, existingVersion.Split('?').First(), objectId,
+                    //Otherwise, create item https://aps.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-POST/
+                    await APS.CreateSubsequentVersion(conversionJob.ProjectId, existingVersion.Split('?').First(), objectId,
                         conversionJob.FileName, suffix, token);
                     conversionJob.AddLog($"Created Next Version of File");
                 }
