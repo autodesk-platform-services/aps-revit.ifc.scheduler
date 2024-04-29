@@ -1,7 +1,7 @@
 ﻿# Revit to IFC Scheduler
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET%20-8.0-blue.svg)
-[![MIT](https://img.shields.io/badge/License-MIT-blue.svg)](http://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [![OAuth2](https://img.shields.io/badge/OAuth2-v2-green.svg)](http://aps.autodesk.com/)
 [![Data-Management](https://img.shields.io/badge/Data%20Management-v1-green.svg)](http://aps.autodesk.com/)
@@ -114,7 +114,6 @@ LogPath | The specific path where log files should be stored | _null_
 IncludeShallowCopies | Copying a file in ACC/BIM360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
 TwoLegScope | The APS scopes used by two legged tokens | data:read data:create account:read
 ThreeLegScope | The APS scopes used by three legged tokens | user:read data:read
-ApsBaseUrl | The root URL used to connect to the APS platform | https://developer.api.autodesk.com
 
 ### Deployment Steps
  
@@ -214,7 +213,7 @@ SendGrid can be setup by creating an account at [www.sendgrid.com](https://www.s
 
 ###### Internationalization - Additional Language Support
 
-This application is capable of supporting multiple languages -- by default, English and Norwegian have been provided. To add additional languages, copy the folder located at `BIM360 - Revit to IFC Converter/ClientApp/public/locales/en`, and rename it with the appropriate language code. Search for the file named `i18next.ts`, and add the language code to the `fallbackLng` array. Finally, edit the `translation.json` and `scheduler.json` files in the folder that you just copied, and set the values on the right hand side to the appropriate translation.
+This application is capable of supporting multiple languages -- by default, English and Norwegian have been provided. To add additional languages, copy the folder located at `aps-revit.ifc.scheduler/ClientApp/public/locales/en`, and rename it with the appropriate language code. Search for the file named `i18next.ts`, and add the language code to the `fallbackLng` array. Finally, edit the `translation.json` and `scheduler.json` files in the folder that you just copied, and set the values on the right hand side to the appropriate translation.
 
 When this is done, an additional language code will be shown in the header bar of the application.
 
@@ -249,4 +248,4 @@ This application is licensed under Apache 2.0. For details, please see [LICENSE.
 ## Written By
 
 * Daniel Clayson, Global Consulting Delivery Team, Autodesk
-* Reviewed and maintained by Eason Kang [in/eason-kang-b4398492](https://www.linkedin.com/in/eason-kang-b4398492), [Developer Advocate](http://aps.autodesk.com)
+* Reviewed and maintained by Eason Kang [in/eason-kang-b4398492](https://www.linkedin.com/in/eason-kang-b4398492), [Developer Advocacy and Support Team](http://aps.autodesk.com)

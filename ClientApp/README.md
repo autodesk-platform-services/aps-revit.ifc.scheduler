@@ -1,5 +1,11 @@
 # Revit to IFC Scheduler - Front End
 [![node.js](https://img.shields.io/badge/Node.js-16.20.2-blue.svg)](https://nodejs.org)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+
+[![react.js](https://img.shields.io/badge/React-20172A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![react router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)](https://reactrouter.com/)
+
+
 
 Built using the Create-React-App utility.
 
@@ -8,7 +14,7 @@ Built using the Create-React-App utility.
 ### Prerequisites
 
 - [APS credentials](https://forge.autodesk.com/en/docs/oauth/v2/tutorials/create-app)
-- [Node.js](https://nodejs.org) must be v16
+- [Node.js](https://nodejs.org) must be v16 at this moment
 - [Yarn package manager](https://yarnpkg.com)
 - Terminal (for example, [Windows Command Prompt](https://en.wikipedia.org/wiki/Cmd.exe) or [macOS Terminal](https://support.apple.com/guide/terminal/welcome/mac))
 
