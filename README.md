@@ -54,7 +54,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
     * [Azure SQL](https://azure.microsoft.com/en-us/products/azure-sql/)
     * [Amazon RDS for SQL Server](https://aws.amazon.com/rds/sqlserver/)
 * Basic knowledge of C#
-* Autodesk APS App provisioned to your ACC/BIM360 account
+* Autodesk APS App provisioned to your Autodesk Forma hub/BIM360 account
 
 ### Running locally
 
@@ -111,7 +111,7 @@ SendGridApiKey | If email notifications are desired, an API key from SendGrid sh
 FromEmail | The email address that SendGrid should attempt to put into the 'From' field | _null_
 ToEmail | The email address that SendGrid should attempt to put into the 'To' field | _null_
 LogPath | The specific path where log files should be stored | _null_
-IncludeShallowCopies | Copying a file in ACC/BIM360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
+IncludeShallowCopies | Copying a file in Autodesk Forma/BIM360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
 TwoLegScope | The APS scopes used by two legged tokens | data:read data:create account:read
 ThreeLegScope | The APS scopes used by three legged tokens | user:read data:read
 
@@ -127,7 +127,7 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Initial Setup
 
 1. Navigate to the tool using your browser.
-2. Log in using your Forma Hub/BIM360 account (your email address must be included in the AdminEmails Environment Setting)
+2. Log in using your Forma hub/BIM360 account (your email address must be included in the AdminEmails Environment Setting)
 3. Navigate to Settings by clicking `Settings` in the top right corner
 4. Toggle on the desired Forma hubs/BIM360 accounts. 
 5. Add an IFC Settings Set Name using the `Add IFC Settings Set Name` button.
@@ -230,7 +230,7 @@ When the tables are modified in the Data project, you will need to create a new 
 ### Troubleshooting
 
 1. **Cannot see my Forma/BIM360 projects**:
-    * Make sure to provision the APS App Client ID within the ACC/BIM360 Account, [learn more here](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps). (This requires the Account Admin permission)
+    * Make sure to provision the APS App Client ID within the Forma Hub/BIM360 Account, [learn more here](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps). (This requires the Hub/Account Admin permission)
     * Also, check **section 2.1 Login** and **section 2.3.1 Enabling a Forma/BIM360 account** of [UserGuide.pdf](UserGuide.pdf) for instructions.
 
 2. **Received Microsoft.Data.SqlClient.SqlException while starting this app**: if it indicates that `there is already an object named 'XXXXX' in the database`, then this means the database you specified in `appsetings.json` is not empty. You can fix it by doing either of the below ways:
