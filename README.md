@@ -6,7 +6,7 @@
 [![OAuth2](https://img.shields.io/badge/OAuth2-v2-green.svg)](http://aps.autodesk.com/)
 [![Data-Management](https://img.shields.io/badge/Data%20Management-v1-green.svg)](http://aps.autodesk.com/)
 [![Model-Derivative](https://img.shields.io/badge/Model%20Derivative-v1-green.svg)](https://aps.autodesk.com/en/docs/acc/v1/reference/http/locations-nodes-GET/)
-[![ACC Account-Admin](https://img.shields.io/badge/ACC%20Account%20Admin-v1-green.svg)](https://aps.autodesk.com/en/docs/acc/v1/reference/http/locations-nodes-GET/)
+[![ACC Account-Admin](https://img.shields.io/badge/Forma%20Hub%20Admin-v1-green.svg)](https://aps.autodesk.com/en/docs/acc/v1/reference/http/locations-nodes-GET/)
 
 [![Advanced](https://img.shields.io/badge/Level-Advanced-red.svg)](http://aps.autodesk.com/)
 
@@ -22,9 +22,9 @@
 
 ## Description
 
-This code sample demonstrates the usage of Model Derivative API, which allows you to convert a Revit `.rvt` file stored in ACC/BIM360 Docs to `.ifc` format.
+This code sample demonstrates the usage of Model Derivative API, which allows you to convert a Revit `.rvt` file stored in Autodesk Forma Data Management/BIM360 Docs to `.ifc` format.
 
-The [IFC file format](https://technical.buildingsmart.org/standards/ifc/) is a common transfer format used throughout the world, and consumed by a wide range of applications. You can use this tool to automate tasks to convert Revit Files hosted in ACC/BIM360 Docs to IFC on a recurring basis.
+The [IFC file format](https://technical.buildingsmart.org/standards/ifc/) is a common transfer format used throughout the world, and consumed by a wide range of applications. You can use this tool to automate tasks to convert Revit Files hosted in Autodesk Forma Data Management/BIM360 Docs to IFC on a recurring basis.
 
 Users choose either folders or specific files, then choose an IFC Settings Set name, and set a schedule on which the folders or files should be converted to IFC. At the scheduled time,  the application creates [model derivative](https://aps.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/) jobs for each file, and uploads the IFC file into the same folder as the original Revit file. If the Revit file and IFC Settings Set name have not changed since the last conversion, no job will be created.
 
@@ -37,7 +37,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 
 ## Limitations
 
-* This application will only work on Revit files that are uploaded directly to ACC/BIM360 Docs / Autodesk Docs, or published models from cloud worksharing.
+* This application will only work on Revit files that are uploaded directly to BIM360 Docs / Autodesk Forma Data Management, or published models from cloud worksharing.
 
 
 ## Setup
@@ -127,9 +127,9 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Initial Setup
 
 1. Navigate to the tool using your browser.
-2. Log in using your ACC/BIM360 account (your email address must be included in the AdminEmails Environment Setting)
+2. Log in using your Forma Hub/BIM360 account (your email address must be included in the AdminEmails Environment Setting)
 3. Navigate to Settings by clicking `Settings` in the top right corner
-4. Toggle on the desired ACC/BIM360 accounts. 
+4. Toggle on the desired Forma hubs/BIM360 accounts. 
 5. Add an IFC Settings Set Name using the `Add IFC Settings Set Name` button.
 
     **Note.** Check out `What does an IFC Settings Set Contain?` in the [Further Reading](#further-reading) section, if you don't know what it is.
@@ -137,7 +137,7 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Creating a one-off conversion to IFC
 
 1. Navigate to the tool using your browser.
-2. Log in using your ACC/BIM360 account.
+2. Log in using your Forma hub/BIM360 account.
 3. Choose a project on the left-hand side.
 4. Navigate through the folder tree until you see the desired folders or files.
 5. Select the checkboxes next to the desired folders or files.
@@ -149,7 +149,7 @@ Please see the [User Guide.pdf](./UserGuide.pdf) for additional details.
 #### Creating a scheduled conversion to IFC
 
 1. Navigate to the tool using your browser.
-2. Log in using your ACC/BIM360 account.
+2. Log in using your Forma hub/BIM360 account.
 3. Choose a project on the left-hand side.
 4. Navigate through the folder tree until you see the desired folders or files.
 5. Select the checkboxes next to the desired folders or files.
@@ -171,7 +171,7 @@ Name | Description
 --- | ---
 Created | The IFC conversion job is created and enqueued successfully.
 Processing | The Revit model has been sent to the Model Derivative service, and is being converted to IFC.
-Converted | The model has been converted to IFC, but has not yet been uploaded to ACC/BIM360 Docs.
+Converted | The model has been converted to IFC, but has not yet been uploaded to Forma Data Management/BIM360 Docs.
 Success | The status of the IFC conversion job is success and has been uploaded to the BIM360 Docs folder where the source Revit file is.
 Failed | The conversion or upload could not be completed. Please click the conversion record for more details.
 Unchanged | This model has previously been converted to IFC using the same IFC setting set. No additional conversion is required.
@@ -183,7 +183,7 @@ TimeOut | The APS Model Derivative service has returned a [timeout error](https:
 
 Documentation:
 
-- [ACC/BIM360 API](https://aps.autodesk.com/en/docs/bim360/v1/overview/) and [App Provisioning](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps)
+- [Forma/BIM360 API](https://aps.autodesk.com/en/docs/bim360/v1/overview/) and [App Provisioning](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps)
 - [Data Management API](https://developer.autodesk.com/en/docs/data/v2/overview/)
 - [Model Derivative API](https://aps.autodesk.com/en/docs/model-derivative/v2/developers_guide/overview/)
 
@@ -219,7 +219,7 @@ When this is done, an additional language code will be shown in the header bar o
 
 ###### Shallow Copies
 
-When a file is 'shallow copied', and ACC/BIM360 makes a reference to a file that's already claimed by another BIM360 file, it can't be processed via the Model Derivative service. This happens within 'Shared' folders, and when a user makes use of the 'copy' function. The `IncludeShallowCopies` optional environment setting allows us to get around this, by making a copy of the file on OSS, then translating that instead.
+When a file is 'shallow copied', and Autodesk Forma/BIM360 makes a reference to a file that's already claimed by another BIM360 file, it can't be processed via the Model Derivative service. This happens within 'Shared' folders, and when a user makes use of the 'copy' function. The `IncludeShallowCopies` optional environment setting allows us to get around this, by making a copy of the file on OSS, then translating that instead.
 
 ###### Modifying the Database
 
@@ -229,9 +229,9 @@ When the tables are modified in the Data project, you will need to create a new 
 
 ### Troubleshooting
 
-1. **Cannot see my ACC/BIM360 projects**:
+1. **Cannot see my Forma/BIM360 projects**:
     * Make sure to provision the APS App Client ID within the ACC/BIM360 Account, [learn more here](https://aps.autodesk.com/blog/bim-360-docs-provisioning-aps-apps). (This requires the Account Admin permission)
-    * Also, check **section 2.1 Login** and **section 2.3.1 Enabling a BIM360 account** of [UserGuide.pdf](UserGuide.pdf) for instructions.
+    * Also, check **section 2.1 Login** and **section 2.3.1 Enabling a Forma/BIM360 account** of [UserGuide.pdf](UserGuide.pdf) for instructions.
 
 2. **Received Microsoft.Data.SqlClient.SqlException while starting this app**: if it indicates that `there is already an object named 'XXXXX' in the database`, then this means the database you specified in `appsetings.json` is not empty. You can fix it by doing either of the below ways:
     * Comment out the `dbContext.Database.Migrate();` in [Startup.cs](Startup.cs), then restart the app.
