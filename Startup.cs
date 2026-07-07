@@ -32,6 +32,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Hangfire;
 using Hangfire.Dashboard;
+using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
 using Serilog;
 using Newtonsoft.Json.Serialization;
@@ -75,6 +76,9 @@ namespace RevitToIfcScheduler
             AppConfig.DataProtector = DataProtectionProvider.Create("RevitToIfc").CreateProtector("User");
             AppConfig.BucketKey = Configuration.GetValue<string>("BucketKey", $"{AppConfig.AppId}-{AppConfig.ClientId}".ToLower()).Substring(0, 35);
 
+            var dbConfig = Configuration.GetSection("DatabaseProviderConfiguration").Get<DatabaseProviderConfiguration>() ?? new DatabaseProviderConfiguration();
+            AppConfig.DatabaseProviderType = dbConfig.ProviderType;
+
             AppConfig.AdminEmails = new List<string>();
             var adminEmails = Configuration.GetValue<string>("AdminEmails", "").Split(';').ToList();
             foreach (var email in adminEmails)
@@ -82,26 +86,58 @@ namespace RevitToIfcScheduler
                 AppConfig.AdminEmails.Add(email.ToLower());
             }
 
-            services.AddHangfire(config => config
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(AppConfig.SqlDB, new SqlServerStorageOptions
-                {
-                    SlidingInvisibilityTimeout = TimeSpan.FromHours(2),
-                }));
+            services.AddHangfire(config =>
+            {
+                config
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings();
 
-            services.AddHangfireServer();            
-            
+                switch (AppConfig.DatabaseProviderType)
+                {
+                    case DatabaseProviderType.SqlServer:
+                        config.UseSqlServerStorage(AppConfig.SqlDB, new SqlServerStorageOptions
+                        {
+                            SlidingInvisibilityTimeout = TimeSpan.FromHours(2),
+                        });
+                        break;
+                    case DatabaseProviderType.PostgreSQL:
+                        config.UsePostgreSqlStorage(
+                            c => c.UseNpgsqlConnection(AppConfig.SqlDB),
+                            new PostgreSqlStorageOptions
+                            {
+                                UseSlidingInvisibilityTimeout = true,
+                                InvisibilityTimeout = TimeSpan.FromHours(2),
+                            });
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unsupported database provider type: {AppConfig.DatabaseProviderType}");
+                }
+            });
+
+            services.AddHangfireServer();
+
             services.AddDbContext<RevitIfcContext>(options =>
-                options.UseSqlServer(
-                    AppConfig.SqlDB,
-                    b => b.MigrationsAssembly(typeof(RevitIfcContext).Assembly.GetName().ToString())));
-            
+            {
+                switch (AppConfig.DatabaseProviderType)
+                {
+                    case DatabaseProviderType.SqlServer:
+                        options.UseSqlServer(
+                            AppConfig.SqlDB,
+                            b => b.MigrationsAssembly("RevitToIfcScheduler"));
+                        break;
+                    case DatabaseProviderType.PostgreSQL:
+                        options.UseNpgsql(
+                            AppConfig.SqlDB,
+                            b => b.MigrationsAssembly("RevitToIfcScheduler"));
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unsupported database provider type: {AppConfig.DatabaseProviderType}");
+                }
+            });
+
             using(var dbContext = services.BuildServiceProvider().GetService<RevitIfcContext>())
             {
-                dbContext.Database.EnsureCreated();
-                //Run migration when EF models have been changed.
-                //dbContext.Database.Migrate();
+                dbContext.Database.Migrate();
             }
             
             //Add service for accessing current HttpContext
