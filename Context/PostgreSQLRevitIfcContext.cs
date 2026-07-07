@@ -17,6 +17,7 @@
 /////////////////////////////////////////////////////////////////////
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace RevitToIfcScheduler.Context
 {
@@ -39,6 +40,19 @@ namespace RevitToIfcScheduler.Context
                     "Host=localhost;Database=RevitIFCScheduler;Username=postgres;Password=postgres",
                     b => b.MigrationsAssembly("RevitToIfcScheduler"));
             }
+        }
+    }
+
+    public class PostgreSQLRevitIfcContextFactory : IDesignTimeDbContextFactory<PostgreSQLRevitIfcContext>
+    {
+        public PostgreSQLRevitIfcContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<RevitIfcContext>();
+            optionsBuilder.UseNpgsql(
+                "Host=localhost;Database=RevitIFCScheduler;Username=postgres;Password=postgres",
+                b => b.MigrationsAssembly("RevitToIfcScheduler"));
+
+            return new PostgreSQLRevitIfcContext(optionsBuilder.Options);
         }
     }
 }
