@@ -34,5 +34,15 @@ namespace RevitToIfcScheduler.Context
         public DbSet<Schedule> Schedules { get; set; }
         public DbSet<ConversionJob> ConversionJobs { get; set; }
         public DbSet<Account> Accounts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.Property(e => e.Id).HasMaxLength(450);
+            });
+        }
     }
 }
