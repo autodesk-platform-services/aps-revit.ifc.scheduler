@@ -59,8 +59,15 @@ namespace RevitToIfcScheduler.Controllers
                     var accounts = await RevitIfcContext.Accounts.ToListAsync();
                     var twoLeggedToken = await TokenManager.GetTwoLeggedToken();
                     await user.FetchPermissions(accounts, twoLeggedToken);
-                    RevitIfcContext.Users.Update(user);
-                    await RevitIfcContext.SaveChangesAsync();
+                    try
+                    {
+                        RevitIfcContext.Users.Update(user);
+                        await RevitIfcContext.SaveChangesAsync();
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Unauthorized();
+                    }
                     
                     
                     var jwtToken = new JwtBuilder()
