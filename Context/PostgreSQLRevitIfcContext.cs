@@ -21,13 +21,22 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace RevitToIfcScheduler.Context
 {
-    // Design-time-only subclass used by `dotnet ef migrations add` to generate
-    // the PostgreSQL migration set under Migrations/PostgreSQL/. This class is
-    // NOT registered in DI; the runtime always uses RevitIfcContext with the
-    // provider chosen by DatabaseProviderConfiguration in Startup.cs.
+    // Subclass of RevitIfcContext used for two purposes:
+    // 1. Design-time: `dotnet ef migrations add` uses PostgreSQLRevitIfcContextFactory
+    //    to generate the PostgreSQL migration set under Migrations/PostgreSQL/.
+    // 2. Runtime (PostgreSQL only): registered in DI so that EF Core's migration
+    //    discovery finds migrations tagged [DbContext(typeof(PostgreSQLRevitIfcContext))]
+    //    rather than the SQL Server ones tagged [DbContext(typeof(RevitIfcContext))].
     public class PostgreSQLRevitIfcContext : RevitIfcContext
     {
+        // Constructor for design-time factory (DbContextOptions<RevitIfcContext> base type).
         public PostgreSQLRevitIfcContext(DbContextOptions<RevitIfcContext> options)
+            : base(options)
+        {
+        }
+
+        // Constructor for runtime DI registration via AddDbContext<PostgreSQLRevitIfcContext>.
+        public PostgreSQLRevitIfcContext(DbContextOptions<PostgreSQLRevitIfcContext> options)
             : base(options)
         {
         }

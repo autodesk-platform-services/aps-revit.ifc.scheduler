@@ -28,6 +28,13 @@ namespace RevitToIfcScheduler.Context
         {
             // Database.SetCommandTimeout(300);
         }
+
+        // Non-generic overload lets derived classes (e.g. PostgreSQLRevitIfcContext)
+        // chain their own DbContextOptions<TDerived> up through this base constructor.
+        protected RevitIfcContext(DbContextOptions options)
+            : base(options)
+        {
+        }
         
         public DbSet<User> Users { get; set; }
         public DbSet<IfcSettingsSet> IfcSettingsSets { get; set; }

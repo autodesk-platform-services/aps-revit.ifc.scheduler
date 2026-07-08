@@ -116,24 +116,28 @@ namespace RevitToIfcScheduler
 
             services.AddHangfireServer();
 
-            services.AddDbContext<RevitIfcContext>(options =>
+            // EF Core migration discovery matches migrations by [DbContext(typeof(T))] on the
+            // live instance's GetType(). SQL Server migrations are tagged RevitIfcContext;
+            // PostgreSQL migrations are tagged PostgreSQLRevitIfcContext. Registering the
+            // concrete subclass for PostgreSQL ensures the right migration set is found.
+            switch (AppConfig.DatabaseProviderType)
             {
-                switch (AppConfig.DatabaseProviderType)
-                {
-                    case DatabaseProviderType.SqlServer:
+                case DatabaseProviderType.SqlServer:
+                    services.AddDbContext<RevitIfcContext>(options =>
                         options.UseSqlServer(
                             AppConfig.SqlDB,
-                            b => b.MigrationsAssembly("RevitToIfcScheduler"));
-                        break;
-                    case DatabaseProviderType.PostgreSQL:
+                            b => b.MigrationsAssembly("RevitToIfcScheduler")));
+                    break;
+                case DatabaseProviderType.PostgreSQL:
+                    services.AddDbContext<PostgreSQLRevitIfcContext>(options =>
                         options.UseNpgsql(
                             AppConfig.SqlDB,
-                            b => b.MigrationsAssembly("RevitToIfcScheduler"));
-                        break;
-                    default:
-                        throw new InvalidOperationException($"Unsupported database provider type: {AppConfig.DatabaseProviderType}");
-                }
-            });
+                            b => b.MigrationsAssembly("RevitToIfcScheduler")));
+                    services.AddScoped<RevitIfcContext>(sp => sp.GetRequiredService<PostgreSQLRevitIfcContext>());
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported database provider type: {AppConfig.DatabaseProviderType}");
+            }
 
             using(var dbContext = services.BuildServiceProvider().GetService<RevitIfcContext>())
             {
