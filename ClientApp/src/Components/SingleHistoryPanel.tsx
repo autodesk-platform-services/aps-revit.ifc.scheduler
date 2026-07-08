@@ -50,7 +50,7 @@ export const SingleHistoryPanel = observer(()=>{
     return (
         <div id={"historyPanel"}>
             <header style={{padding: '10px'}}>
-                <h2>{project?.name} > {conversionJob?.fileName}</h2>
+                <h2>{project?.name} {'>'} {conversionJob?.fileName}</h2>
                 <a style={{marginLeft: '50px'}} target={"_blank"} rel={"noreferrer"} href={webViewUrl}>
                     <DefaultButton text={"Folder in ACC/BIM360"}/>
                 </a>

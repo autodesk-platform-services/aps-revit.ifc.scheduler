@@ -18,9 +18,23 @@
 
 using RevitToIfcScheduler.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace RevitToIfcScheduler.Context
 {
+    public class RevitIfcContextFactory : IDesignTimeDbContextFactory<RevitIfcContext>
+    {
+        public RevitIfcContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<RevitIfcContext>();
+            optionsBuilder.UseSqlServer(
+                "Server=(localdb)\\MSSQLLocalDB;Database=RevitIFCScheduler;Trusted_Connection=True;",
+                b => b.MigrationsAssembly("RevitToIfcScheduler"));
+
+            return new RevitIfcContext(optionsBuilder.Options);
+        }
+    }
+
     public class RevitIfcContext: DbContext
     {
         public RevitIfcContext(DbContextOptions<RevitIfcContext> options)
@@ -28,11 +42,36 @@ namespace RevitToIfcScheduler.Context
         {
             // Database.SetCommandTimeout(300);
         }
+
+        // Non-generic overload lets derived classes (e.g. PostgreSQLRevitIfcContext)
+        // chain their own DbContextOptions<TDerived> up through this base constructor.
+        protected RevitIfcContext(DbContextOptions options)
+            : base(options)
+        {
+        }
         
         public DbSet<User> Users { get; set; }
         public DbSet<IfcSettingsSet> IfcSettingsSets { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
         public DbSet<ConversionJob> ConversionJobs { get; set; }
         public DbSet<Account> Accounts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.Property(e => e.Id).HasMaxLength(450);
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(e => e.HashedSessionKey).HasMaxLength(64);
+                entity.HasIndex(e => e.HashedSessionKey)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Users_HashedSessionKey");
+            });
+        }
     }
 }

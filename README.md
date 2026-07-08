@@ -45,14 +45,17 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 ### Prerequisites
 
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2019+ (Windows) or Code (Windows, MacOS).
-* [dotNET 5.0](https://dotnet.microsoft.com/en-us/download/dotnet/5.0)
+* [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * [NodeJS (with NPM)](https://nodejs.org/en/download/)
-* [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-  * For installing SQL Server on `Windows` machines, please see [Microsoft's SQL Server installation guide](https://docs.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server?view=sql-server-ver15)
-  * For installing SQL Server on `Linux` machines, please see [Microsoft's Installation Guidance for SQL Server](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-setup?view=sql-server-ver15)
-  * For `Cloud-hosted` SQL, options include:
-    * [Azure SQL](https://azure.microsoft.com/en-us/products/azure-sql/)
-    * [Amazon RDS for SQL Server](https://aws.amazon.com/rds/sqlserver/)
+* A supported database engine — either SQL Server or PostgreSQL:
+  * [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (default)
+    * For installing SQL Server on `Windows` machines, please see [Microsoft's SQL Server installation guide](https://docs.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server?view=sql-server-ver15)
+    * For installing SQL Server on `Linux` machines, please see [Microsoft's Installation Guidance for SQL Server](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-setup?view=sql-server-ver15)
+    * For `Cloud-hosted` SQL, options include:
+      * [Azure SQL](https://azure.microsoft.com/en-us/products/azure-sql/)
+      * [Amazon RDS for SQL Server](https://aws.amazon.com/rds/sqlserver/)
+  * [PostgreSQL](https://www.postgresql.org/download/) (16 or newer recommended)
+    * For `Cloud-hosted` PostgreSQL, options include [Azure Database for PostgreSQL](https://azure.microsoft.com/en-us/products/postgresql/) and [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/).
 * Basic knowledge of C#
 * Autodesk APS App provisioned to your ACC/BIM360 account
 
@@ -78,7 +81,9 @@ git clone https://github.com/autodesk-platform-services/aps-revit.ifc.scheduler.
 
 ![Visual Studio Code](.readme/VSCode.png "Visual Studio Code")
 
-Edit the `appsettings.Development.json` file, adding your APS Client ID, Secret, emails for Application Admins, and your SQL Database connection string.
+Edit the `appsettings.Development.json` file, adding your APS Client ID, Secret, emails for Application Admins, and your database connection string.
+
+For SQL Server (default):
 
 ```json
 {
@@ -86,10 +91,28 @@ Edit the `appsettings.Development.json` file, adding your APS Client ID, Secret,
   "ClientSecret": "your secret here",
   "AdminEmails": "your admin user emails here",
   "ConnectionStrings": {
-    "SqlDB": "your sql server connection string here: e.g. Server=localhost;Database=RevitIFCScheduler;User=sa;Password=...;TrustServerCertificate=True;"
+    "SqlDB": "Server=localhost;Database=RevitIFCScheduler;User=sa;Password=...;TrustServerCertificate=True;"
   }
 }
 ```
+
+For PostgreSQL, set the `DatabaseProviderConfiguration.ProviderType` to `PostgreSQL` and supply a Npgsql-format connection string:
+
+```json
+{
+  "ClientId": "your id here",
+  "ClientSecret": "your secret here",
+  "AdminEmails": "your admin user emails here",
+  "ConnectionStrings": {
+    "SqlDB": "Host=localhost;Database=RevitIFCScheduler;Username=postgres;Password=..."
+  },
+  "DatabaseProviderConfiguration": {
+    "ProviderType": "PostgreSQL"
+  }
+}
+```
+
+When the `DatabaseProviderConfiguration` section is omitted, the application defaults to `SqlServer`. Both Entity Framework Core (application schema) and Hangfire (job storage) honor the selected provider. On startup, the appropriate migration set is applied automatically — SQL Server migrations live in `Migrations/` and PostgreSQL migrations in `Migrations/PostgreSQL/`.
 
 Run the app. Open `http://localhost:3000` in your browser to view the application.
 
@@ -100,12 +123,13 @@ Name | Description | Example Value
 ClientId | From the APS App created during Setup | _CL35ag54e6aghsaf4cacwe_
 ClientSecret | From the APS App created during Setup | _aa46asffaws_
 AdminEmails | Semicolon-separated list of email addresses | _admin@mycompany.com;bimmanager@mycompany.com_
-ConnectionStrings.SqlDB | A SQL connection String |  _Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0_
+ConnectionStrings.SqlDB | Database connection string. Format depends on `DatabaseProviderConfiguration.ProviderType`. |  _SQL Server:_ `Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0` &#124;&#124; _PostgreSQL:_ `Host=MY-SERVER;Database=revit-to-ifc-scheduler;Username=postgres;Password=...`
 
 #### Optional App Settings
 
 Name | Description | Default Value
 --- | --- | ---
+DatabaseProviderConfiguration.ProviderType | Which database engine to use. Supported values: `SqlServer`, `PostgreSQL`. When the entire `DatabaseProviderConfiguration` section is omitted, `SqlServer` is used. | SqlServer
 AppId | A name for the application, used when naming cookies and buckets | revit-to-ifc
 SendGridApiKey | If email notifications are desired, an API key from SendGrid should be provided | _null_
 FromEmail | The email address that SendGrid should attempt to put into the 'From' field | _null_
@@ -205,6 +229,30 @@ Related knowledge:
 
 ### Tips and Tricks:
 
+###### Overriding the Vite Dev Server URL
+
+By default, the Vite development server runs on `http://localhost:5173`. If port `5173` is already in use, or you want to use a different port, you need to update **two places**:
+
+1. **`ClientApp/vite.config.js`** — change the `server.port` value:
+
+    ```js
+    server: {
+      port: 5174,   // ← your preferred port
+    },
+    ```
+
+2. **`Startup.cs`** — pass the matching URL to `ViteServerMiddleware.EnsureStarted` via the optional `viteServerUrl` parameter:
+
+    ```csharp
+    viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(
+        env.ContentRootPath,
+        lifetime.ApplicationStopping,
+        viteServerUrl: "http://localhost:5174"   // ← must match vite.config.js
+    );
+    ```
+
+`EnsureStarted` returns the URL it used, which is then passed directly to `UseProxyToSpaDevelopmentServer`, so only one string needs to change on the .NET side. If Vite is already listening on the specified URL when the .NET app starts (e.g. you ran `npm start` manually beforehand), startup detection is skipped and the existing server is used.
+
 ###### Sending Confirmation Emails
 
 This tool uses SendGrid to send a confirmation email on a successful conversion. This requires creating a free SendGrid account (for up to 25,000 emails/month), verifying a 'Single Sender' email address, and retrieving an API Key with 'Send' authorization. Three optional environment settings must be set: `SendGridApiKey`, `FromEmail`, and `ToEmail`. If any one of these is left blank, no emails will be sent. 
@@ -226,6 +274,20 @@ When a file is 'shallow copied', and ACC/BIM360 makes a reference to a file that
 This tool uses Entity Framework Core in a code-first, migration based setup. Provide it with a connection  string, and it will automatically create or update the database and tables as needed.
 
 When the tables are modified in the Data project, you will need to create a new Migration. Do do this, navigate to the 'BIM360 - Revit to IFC Converter' project, and run the following command: `dotnet ef migrations add NameOfYourMigrationHere`. The migration will be applied during the next application run.
+
+When adding a migration, both the SQL Server and PostgreSQL migration sets must be regenerated so both providers stay in sync:
+
+```bash
+# SQL Server migration (default context, output to root Migrations/)
+dotnet ef migrations add NameOfYourMigrationHere
+
+# PostgreSQL migration (design-time-only context, output to Migrations/PostgreSQL/)
+dotnet ef migrations add NameOfYourMigrationHere --context PostgreSQLRevitIfcContext --output-dir Migrations/PostgreSQL
+```
+
+###### Hangfire 1.8 upgrade
+
+To enable the PostgreSQL storage provider, the Hangfire packages (`Hangfire.Core`, `Hangfire.SqlServer`, `Hangfire.AspNetCore`) were upgraded from `1.7.28` to `1.8.14`. `Microsoft.EntityFrameworkCore*` was bumped from `8.0.4` to `8.0.11` to match the transitive minimum of `Npgsql.EntityFrameworkCore.PostgreSQL 8.0.11`.
 
 ### Troubleshooting
 

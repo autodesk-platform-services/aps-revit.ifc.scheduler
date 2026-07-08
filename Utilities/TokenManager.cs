@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Http;
 using Autodesk.SDKManager;
 using Autodesk.Authentication;
 using Autodesk.Authentication.Model;
+using Microsoft.EntityFrameworkCore;
 using RevitToIfcScheduler.Models;
 
 namespace RevitToIfcScheduler.Utilities
@@ -122,8 +123,14 @@ namespace RevitToIfcScheduler.Utilities
                 user.Refresh = threeLeggedToken._RefreshToken;
                 user.TokenExpiration = DateTime.UtcNow.AddSeconds(threeLeggedToken.ExpiresIn.HasValue ? threeLeggedToken.ExpiresIn.Value : 0);
 
-                revitIfcContext.Users.Update(user);
-                await revitIfcContext.SaveChangesAsync();
+                try
+                {
+                    revitIfcContext.Users.Update(user);
+                    await revitIfcContext.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                }
             }
             catch (Exception exception)
             {

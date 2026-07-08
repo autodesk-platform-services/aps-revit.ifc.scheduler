@@ -1,5 +1,5 @@
 # Revit to IFC Scheduler - Front End
-[![node.js](https://img.shields.io/badge/Node.js-16.20.2-blue.svg)](https://nodejs.org)
+[![node.js](https://img.shields.io/badge/Node.js-22.x-blue.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [![react.js](https://img.shields.io/badge/React-20172A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
@@ -14,7 +14,7 @@ Built using the Create-React-App utility.
 ### Prerequisites
 
 - [APS credentials](https://forge.autodesk.com/en/docs/oauth/v2/tutorials/create-app)
-- [Node.js](https://nodejs.org) must be v16 at this moment
+- [Node.js](https://nodejs.org) v22 or above (LTS)
 - [Yarn package manager](https://yarnpkg.com)
 - Terminal (for example, [Windows Command Prompt](https://en.wikipedia.org/wiki/Cmd.exe) or [macOS Terminal](https://support.apple.com/guide/terminal/welcome/mac))
 
@@ -22,7 +22,7 @@ Built using the Create-React-App utility.
 
 - Open Terminal
 - Change folder to the [ClientApp](./ClientApp): `cd ClientApp`
-- Install dependencies: `npm install` or `npm install --legacy-peer-deps` if npm shows errors on peer dependencies.
+- Install dependencies: `npm install`
 - Build the codes: `npm run build`
 - Before starting the .NET app, ensure the environment variable be set as `PRODUCTION`. Otherwise, MSBuild will do `npm run build` again which will report errors.
 

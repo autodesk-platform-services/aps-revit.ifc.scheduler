@@ -25,13 +25,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Hangfire;
 using Hangfire.Dashboard;
+using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
 using Serilog;
 using Newtonsoft.Json.Serialization;
@@ -75,6 +75,9 @@ namespace RevitToIfcScheduler
             AppConfig.DataProtector = DataProtectionProvider.Create("RevitToIfc").CreateProtector("User");
             AppConfig.BucketKey = Configuration.GetValue<string>("BucketKey", $"{AppConfig.AppId}-{AppConfig.ClientId}".ToLower()).Substring(0, 35);
 
+            var dbConfig = Configuration.GetSection("DatabaseProviderConfiguration").Get<DatabaseProviderConfiguration>() ?? new DatabaseProviderConfiguration();
+            AppConfig.DatabaseProviderType = dbConfig.ProviderType;
+
             AppConfig.AdminEmails = new List<string>();
             var adminEmails = Configuration.GetValue<string>("AdminEmails", "").Split(';').ToList();
             foreach (var email in adminEmails)
@@ -82,26 +85,62 @@ namespace RevitToIfcScheduler
                 AppConfig.AdminEmails.Add(email.ToLower());
             }
 
-            services.AddHangfire(config => config
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(AppConfig.SqlDB, new SqlServerStorageOptions
-                {
-                    SlidingInvisibilityTimeout = TimeSpan.FromHours(2),
-                }));
+            services.AddHangfire(config =>
+            {
+                config
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings();
 
-            services.AddHangfireServer();            
-            
-            services.AddDbContext<RevitIfcContext>(options =>
-                options.UseSqlServer(
-                    AppConfig.SqlDB,
-                    b => b.MigrationsAssembly(typeof(RevitIfcContext).Assembly.GetName().ToString())));
-            
+                switch (AppConfig.DatabaseProviderType)
+                {
+                    case DatabaseProviderType.SqlServer:
+                        config.UseSqlServerStorage(AppConfig.SqlDB, new SqlServerStorageOptions
+                        {
+                            SlidingInvisibilityTimeout = TimeSpan.FromHours(2),
+                        });
+                        break;
+                    case DatabaseProviderType.PostgreSQL:
+                        config.UsePostgreSqlStorage(
+                            c => c.UseNpgsqlConnection(AppConfig.SqlDB),
+                            new PostgreSqlStorageOptions
+                            {
+                                UseSlidingInvisibilityTimeout = true,
+                                InvisibilityTimeout = TimeSpan.FromHours(2),
+                            });
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unsupported database provider type: {AppConfig.DatabaseProviderType}");
+                }
+            });
+
+            services.AddHangfireServer();
+
+            // EF Core migration discovery matches migrations by [DbContext(typeof(T))] on the
+            // live instance's GetType(). SQL Server migrations are tagged RevitIfcContext;
+            // PostgreSQL migrations are tagged PostgreSQLRevitIfcContext. Registering the
+            // concrete subclass for PostgreSQL ensures the right migration set is found.
+            switch (AppConfig.DatabaseProviderType)
+            {
+                case DatabaseProviderType.SqlServer:
+                    services.AddDbContext<RevitIfcContext>(options =>
+                        options.UseSqlServer(
+                            AppConfig.SqlDB,
+                            b => b.MigrationsAssembly("RevitToIfcScheduler")));
+                    break;
+                case DatabaseProviderType.PostgreSQL:
+                    services.AddDbContext<PostgreSQLRevitIfcContext>(options =>
+                        options.UseNpgsql(
+                            AppConfig.SqlDB,
+                            b => b.MigrationsAssembly("RevitToIfcScheduler")));
+                    services.AddScoped<RevitIfcContext>(sp => sp.GetRequiredService<PostgreSQLRevitIfcContext>());
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported database provider type: {AppConfig.DatabaseProviderType}");
+            }
+
             using(var dbContext = services.BuildServiceProvider().GetService<RevitIfcContext>())
             {
-                dbContext.Database.EnsureCreated();
-                //Run migration when EF models have been changed.
-                //dbContext.Database.Migrate();
+                dbContext.Database.Migrate();
             }
             
             //Add service for accessing current HttpContext
@@ -126,7 +165,7 @@ namespace RevitToIfcScheduler
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
             {
@@ -164,13 +203,20 @@ namespace RevitToIfcScheduler
 
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+
+            string? viteUrl = null;
+            if (env.IsDevelopment())
+            {
+                viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(env.ContentRootPath, lifetime.ApplicationStopping);
+            }
+
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
+                    spa.UseProxyToSpaDevelopmentServer(viteUrl!);
                 }
             });
 

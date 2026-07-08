@@ -1,7 +1,7 @@
 # Revit to IFC Scheduler - Deployment Guide
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET%20-8.0-blue.svg)
-[![node.js](https://img.shields.io/badge/Node.js-16.20.2-blue.svg)](https://nodejs.org)
+[![node.js](https://img.shields.io/badge/Node.js-22.x-blue.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The Admin Dashboard tool can be deployed to a range of systems. This guide will provide instructions for setting up the tool locally, on Azure, and on AWS.
@@ -11,7 +11,7 @@ The Admin Dashboard tool can be deployed to a range of systems. This guide will 
 Please ensure the following are present on your computer:
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2022+ (Windows) or Code (Windows, MacOS).
 * [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-* [NodeJS (with NPM)](https://nodejs.org/en/download/)
+* [NodeJS (with NPM)](https://nodejs.org/en/download/) v22 or above (LTS) is required
 
 ### Resource List
 
@@ -155,18 +155,19 @@ Name | Description | Example Value
 ClientId | From the APS App created during Setup | _CL35ag54e6aghsaf4cacwe_
 ClientSecret | From the APS App created during Setup | _aa46asffaws_
 AdminEmails | Semicolon-separated list of email addresses | _admin@mycompany.com;bimmanager@mycompany.com_
-ConnectionStrings.SqlDB | A SQL connection String |  _Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0_
+ConnectionStrings.SqlDB | Database connection string. Format depends on `DatabaseProviderConfiguration.ProviderType`. |  _SQL Server:_ `Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0` &#124;&#124; _PostgreSQL:_ `Host=MY-SERVER;Database=revit-to-ifc-scheduler;Username=postgres;Password=...`
 
 ### Optional App Settings
 
 Name | Description | Default Value
 --- | --- | ---
+DatabaseProviderConfiguration.ProviderType | Which database engine to use. Supported values: `SqlServer`, `PostgreSQL`. When the entire `DatabaseProviderConfiguration` section is omitted, `SqlServer` is used. | SqlServer
 AppId | A name for the application, used when naming cookies and buckets | revit-to-ifc
 SendGridApiKey | If email notifications are desired, an API key from SendGrid should be provided | _null_
 FromEmail | The email address that SendGrid should attempt to put into the 'From' field | _null_
 ToEmail | The email address that SendGrid should attempt to put into the 'To' field | _null_
 LogPath | The specific path where log files should be stored | _null_
-IncludeShallowCopies | Copying a file in BIM 360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
+IncludeShallowCopies | Copying a file in ACC/BIM360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
 TwoLegScope | The APS scopes used by two legged tokens | data:read data:create account:read
 ThreeLegScope | The APS scopes used by three legged tokens | user:read data:read
 
@@ -202,3 +203,29 @@ Continue to follow the instructions available at:
 - [Tutorial: How to deploy a .NET sample application using Elastic Beanstalk](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_NET.quickstart.html)
 - [Tutorial: Deploying an ASP.NET core application with Elastic Beanstalk](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/dotnet-core-tutorial.html)
 - [Adding an Amazon RDS DB instance to your .NET application environment](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_NET.rds.html)
+
+## Tips and Tricks
+
+###### Overriding the Vite Dev Server URL
+
+By default, the Vite development server runs on `http://localhost:5173`. If port `5173` is already in use, or you want to use a different port, you need to update **two places**:
+
+1. **`ClientApp/vite.config.js`** — change the `server.port` value:
+
+    ```js
+    server: {
+      port: 5174,   // ← your preferred port
+    },
+    ```
+
+2. **`Startup.cs`** — pass the matching URL to `ViteServerMiddleware.EnsureStarted` via the optional `viteServerUrl` parameter:
+
+    ```csharp
+    viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(
+        env.ContentRootPath,
+        lifetime.ApplicationStopping,
+        viteServerUrl: "http://localhost:5174"   // ← must match vite.config.js
+    );
+    ```
+
+`EnsureStarted` returns the URL it used, which is then passed directly to `UseProxyToSpaDevelopmentServer`, so only one string needs to change on the .NET side. If Vite is already listening on the specified URL when the .NET app starts (e.g. you ran `npm start` manually beforehand), startup detection is skipped and the existing server is used.
