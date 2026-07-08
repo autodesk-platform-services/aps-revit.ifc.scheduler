@@ -210,7 +210,7 @@ namespace RevitToIfcScheduler
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+                    spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
 
