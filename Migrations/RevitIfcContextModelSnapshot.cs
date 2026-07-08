@@ -17,7 +17,7 @@ namespace RevitToIfcScheduler.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -25,6 +25,7 @@ namespace RevitToIfcScheduler.Migrations
             modelBuilder.Entity("RevitToIfcScheduler.Models.Account", b =>
                 {
                     b.Property<string>("Id")
+                        .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
@@ -194,7 +195,8 @@ namespace RevitToIfcScheduler.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HashedSessionKey")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -209,6 +211,11 @@ namespace RevitToIfcScheduler.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HashedSessionKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_HashedSessionKey")
+                        .HasFilter("[HashedSessionKey] IS NOT NULL");
 
                     b.ToTable("Users");
                 });

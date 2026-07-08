@@ -18,9 +18,23 @@
 
 using RevitToIfcScheduler.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace RevitToIfcScheduler.Context
 {
+    public class RevitIfcContextFactory : IDesignTimeDbContextFactory<RevitIfcContext>
+    {
+        public RevitIfcContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<RevitIfcContext>();
+            optionsBuilder.UseSqlServer(
+                "Server=(localdb)\\MSSQLLocalDB;Database=RevitIFCScheduler;Trusted_Connection=True;",
+                b => b.MigrationsAssembly("RevitToIfcScheduler"));
+
+            return new RevitIfcContext(optionsBuilder.Options);
+        }
+    }
+
     public class RevitIfcContext: DbContext
     {
         public RevitIfcContext(DbContextOptions<RevitIfcContext> options)
@@ -49,6 +63,14 @@ namespace RevitToIfcScheduler.Context
             modelBuilder.Entity<Account>(entity =>
             {
                 entity.Property(e => e.Id).HasMaxLength(450);
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(e => e.HashedSessionKey).HasMaxLength(64);
+                entity.HasIndex(e => e.HashedSessionKey)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Users_HashedSessionKey");
             });
         }
     }
