@@ -45,7 +45,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 ### Prerequisites
 
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2019+ (Windows) or Code (Windows, MacOS).
-* [dotNET 5.0](https://dotnet.microsoft.com/en-us/download/dotnet/5.0)
+* [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * [NodeJS (with NPM)](https://nodejs.org/en/download/)
 * A supported database engine — either SQL Server or PostgreSQL:
   * [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (default)

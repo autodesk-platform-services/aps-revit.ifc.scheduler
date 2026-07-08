@@ -155,18 +155,19 @@ Name | Description | Example Value
 ClientId | From the APS App created during Setup | _CL35ag54e6aghsaf4cacwe_
 ClientSecret | From the APS App created during Setup | _aa46asffaws_
 AdminEmails | Semicolon-separated list of email addresses | _admin@mycompany.com;bimmanager@mycompany.com_
-ConnectionStrings.SqlDB | A SQL connection String |  _Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0_
+ConnectionStrings.SqlDB | Database connection string. Format depends on `DatabaseProviderConfiguration.ProviderType`. |  _SQL Server:_ `Server=MY-SERVER;Database=revit-to-ifc-scheduler;Trusted_Connection=True;ConnectRetryCount=0` &#124;&#124; _PostgreSQL:_ `Host=MY-SERVER;Database=revit-to-ifc-scheduler;Username=postgres;Password=...`
 
 ### Optional App Settings
 
 Name | Description | Default Value
 --- | --- | ---
+DatabaseProviderConfiguration.ProviderType | Which database engine to use. Supported values: `SqlServer`, `PostgreSQL`. When the entire `DatabaseProviderConfiguration` section is omitted, `SqlServer` is used. | SqlServer
 AppId | A name for the application, used when naming cookies and buckets | revit-to-ifc
 SendGridApiKey | If email notifications are desired, an API key from SendGrid should be provided | _null_
 FromEmail | The email address that SendGrid should attempt to put into the 'From' field | _null_
 ToEmail | The email address that SendGrid should attempt to put into the 'To' field | _null_
 LogPath | The specific path where log files should be stored | _null_
-IncludeShallowCopies | Copying a file in BIM 360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
+IncludeShallowCopies | Copying a file in ACC/BIM360 does not create a new file, only a reference to the original file, and cannot be passed to the model derivative service. Setting this to true will make a true copy of the file, and pass that to the model derivative service.  | true
 TwoLegScope | The APS scopes used by two legged tokens | data:read data:create account:read
 ThreeLegScope | The APS scopes used by three legged tokens | user:read data:read
 
