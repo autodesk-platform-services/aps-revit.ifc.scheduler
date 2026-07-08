@@ -1,7 +1,7 @@
 # Revit to IFC Scheduler - Deployment Guide
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET%20-8.0-blue.svg)
-[![node.js](https://img.shields.io/badge/Node.js-16.20.2-blue.svg)](https://nodejs.org)
+[![node.js](https://img.shields.io/badge/Node.js-22.x-blue.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The Admin Dashboard tool can be deployed to a range of systems. This guide will provide instructions for setting up the tool locally, on Azure, and on AWS.
@@ -11,7 +11,7 @@ The Admin Dashboard tool can be deployed to a range of systems. This guide will 
 Please ensure the following are present on your computer:
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2022+ (Windows) or Code (Windows, MacOS).
 * [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-* [NodeJS (with NPM)](https://nodejs.org/en/download/)
+* [NodeJS (with NPM)](https://nodejs.org/en/download/) v22 or above (LTS) is required
 
 ### Resource List
 
