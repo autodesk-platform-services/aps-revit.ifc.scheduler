@@ -45,7 +45,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 ### Prerequisites
 
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2019+ (Windows) or Code (Windows, MacOS).
-* [dotNET 5.0](https://dotnet.microsoft.com/en-us/download/dotnet/5.0)
+* [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * [NodeJS (with NPM)](https://nodejs.org/en/download/)
 * A supported database engine — either SQL Server or PostgreSQL:
   * [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (default)
@@ -228,6 +228,30 @@ Related knowledge:
         - IFC4 Design Transfer View
 
 ### Tips and Tricks:
+
+###### Overriding the Vite Dev Server URL
+
+By default, the Vite development server runs on `http://localhost:5173`. If port `5173` is already in use, or you want to use a different port, you need to update **two places**:
+
+1. **`ClientApp/vite.config.js`** — change the `server.port` value:
+
+    ```js
+    server: {
+      port: 5174,   // ← your preferred port
+    },
+    ```
+
+2. **`Startup.cs`** — pass the matching URL to `ViteServerMiddleware.EnsureStarted` via the optional `viteServerUrl` parameter:
+
+    ```csharp
+    viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(
+        env.ContentRootPath,
+        lifetime.ApplicationStopping,
+        viteServerUrl: "http://localhost:5174"   // ← must match vite.config.js
+    );
+    ```
+
+`EnsureStarted` returns the URL it used, which is then passed directly to `UseProxyToSpaDevelopmentServer`, so only one string needs to change on the .NET side. If Vite is already listening on the specified URL when the .NET app starts (e.g. you ran `npm start` manually beforehand), startup detection is skipped and the existing server is used.
 
 ###### Sending Confirmation Emails
 
