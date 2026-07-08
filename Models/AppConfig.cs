@@ -39,6 +39,7 @@ namespace RevitToIfcScheduler.Models
         public static string ThreeLegScope { get; set; }
         public static IDataProtector DataProtector { get; set; }
         public static string SqlDB { get; set; }
+        public static DatabaseProviderType DatabaseProviderType { get; set; } = DatabaseProviderType.SqlServer;
         public static IServiceCollection Services { get; set; }
         public static string BucketKey { get; set; }
         public static bool IncludeShallowCopies { get; set; }
