@@ -204,9 +204,10 @@ namespace RevitToIfcScheduler
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
+            string? viteUrl = null;
             if (env.IsDevelopment())
             {
-                Utilities.ViteServerMiddleware.EnsureStarted(env.ContentRootPath, lifetime.ApplicationStopping);
+                viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(env.ContentRootPath, lifetime.ApplicationStopping);
             }
 
             app.UseSpa(spa =>
@@ -215,7 +216,7 @@ namespace RevitToIfcScheduler
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseProxyToSpaDevelopmentServer(Utilities.ViteServerMiddleware.ViteServerUrl);
+                    spa.UseProxyToSpaDevelopmentServer(viteUrl!);
                 }
             });
 
