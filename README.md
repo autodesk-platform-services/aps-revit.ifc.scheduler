@@ -229,6 +229,30 @@ Related knowledge:
 
 ### Tips and Tricks:
 
+###### Overriding the Vite Dev Server URL
+
+By default, the Vite development server runs on `http://localhost:5173`. If port `5173` is already in use, or you want to use a different port, you need to update **two places**:
+
+1. **`ClientApp/vite.config.js`** — change the `server.port` value:
+
+    ```js
+    server: {
+      port: 5174,   // ← your preferred port
+    },
+    ```
+
+2. **`Startup.cs`** — pass the matching URL to `ViteServerMiddleware.EnsureStarted` via the optional `viteServerUrl` parameter:
+
+    ```csharp
+    viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(
+        env.ContentRootPath,
+        lifetime.ApplicationStopping,
+        viteServerUrl: "http://localhost:5174"   // ← must match vite.config.js
+    );
+    ```
+
+`EnsureStarted` returns the URL it used, which is then passed directly to `UseProxyToSpaDevelopmentServer`, so only one string needs to change on the .NET side. If Vite is already listening on the specified URL when the .NET app starts (e.g. you ran `npm start` manually beforehand), startup detection is skipped and the existing server is used.
+
 ###### Sending Confirmation Emails
 
 This tool uses SendGrid to send a confirmation email on a successful conversion. This requires creating a free SendGrid account (for up to 25,000 emails/month), verifying a 'Single Sender' email address, and retrieving an API Key with 'Send' authorization. Three optional environment settings must be set: `SendGridApiKey`, `FromEmail`, and `ToEmail`. If any one of these is left blank, no emails will be sent. 
