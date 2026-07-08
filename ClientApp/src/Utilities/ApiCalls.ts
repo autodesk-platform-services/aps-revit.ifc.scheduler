@@ -21,7 +21,7 @@ export class ApiCalls{
         return SimpleGet<IUser>(`/api/auth/user`);
     }
     public static logout(){
-        return SimpleGet<void>(`/api/auth/logout`);
+        return SimplePost<void>(`/api/auth/logout`);
     }
     //IFC Settings
     public static getIfcSettings(){

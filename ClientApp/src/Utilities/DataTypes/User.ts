@@ -16,6 +16,8 @@ export class User{
     }
 
     public logout(){
-        ApiCalls.logout();
+        ApiCalls.logout().then(() => {
+            window.location.reload();
+        });
     }
 }

@@ -25,7 +25,7 @@ export const Header = observer(({user}: {user: User})=>{
             {languages.map((val, index)=>(<button key={index} title={val.title} className={'languageButton'} onClick={()=>i18next.changeLanguage(val.value)}>{val.label}</button>))}
            <div style={{width: '50px'}}/>
             <div>{user.name}</div>
-            <div><a href={"/api/auth/logout"}><DefaultButton onClick={user.logout}>{t("Logout")}</DefaultButton></a></div>
+            <div><DefaultButton onClick={() => user.logout()}>{t("Logout")}</DefaultButton></div>
         </div>
     </header>
 })
