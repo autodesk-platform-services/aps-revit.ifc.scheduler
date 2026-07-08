@@ -17,6 +17,7 @@
 /////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using RevitToIfcScheduler.Context;
 using RevitToIfcScheduler.Models;
@@ -86,9 +87,8 @@ namespace RevitToIfcScheduler.Controllers
         }
         
         
-        [HttpGet]
+        [HttpPost]
         [Route("api/auth/logout")]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> LogoutUser()
@@ -97,18 +97,18 @@ namespace RevitToIfcScheduler.Controllers
             {
                 var url = (HttpContext.Request.IsHttps ? "https://" : "http://") +
                            HttpContext.Request.Host.ToUriComponent();
-                
-                if (Authentication.IsAuthorized(HttpContext, RevitIfcContext))
+
+                var sessionCookie = HttpContext.Request.Cookies[AppConfig.AppId];
+                if (!string.IsNullOrEmpty(sessionCookie))
                 {
-                    var user = RevitToIfcScheduler.Models.User.FetchByContext(HttpContext, RevitIfcContext);
-                    if (user != null)
-                    {
-                        RevitIfcContext.Users.Remove(user);
-                        await RevitIfcContext.SaveChangesAsync();
-                        HttpContext.Response.Cookies.Append(AppConfig.AppId, "");
-                    }
+                    var hashedSessionKey = RevitToIfcScheduler.Models.User.ComputeSha256Hash(sessionCookie);
+                    await RevitIfcContext.Users
+                        .Where(u => u.HashedSessionKey == hashedSessionKey)
+                        .ExecuteDeleteAsync();
                 }
-                
+
+                HttpContext.Response.Cookies.Append(AppConfig.AppId, "");
+
                 return Redirect(url);
             }
             catch (Exception ex)
