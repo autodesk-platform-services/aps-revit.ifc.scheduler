@@ -224,17 +224,13 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets";
-                var body = new
+                var ossClient = new OssClient(_sdkManager);
+                var regionEnum = region == "EU" ? Autodesk.Oss.Model.Region.EMEA : Autodesk.Oss.Model.Region.US;
+                await ossClient.CreateBucketAsync(regionEnum, new CreateBucketsPayload
                 {
-                    bucketKey,
-                    policyKey = "transient"
-                };
-
-                await url
-                    .WithHeader("x-ads-region", region)
-                    .WithOAuthBearerToken(token)
-                    .PostJsonAsync(body);
+                    BucketKey = bucketKey,
+                    PolicyKey = PolicyKey.Transient
+                }, accessToken: token);
             }
             catch (Exception exception)
             {
