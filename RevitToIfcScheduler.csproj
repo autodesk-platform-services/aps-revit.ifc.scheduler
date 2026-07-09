@@ -14,8 +14,6 @@
     <PackageReference Include="Autodesk.ModelDerivative" Version="2.2.0" />
     <PackageReference Include="Autodesk.Oss" Version="2.3.3" />
     <PackageReference Include="Autodesk.SdkManager" Version="1.1.2" />
-    <PackageReference Include="Flurl" Version="4.0.0" />
-    <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="Hangfire.Core" Version="1.8.23" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
