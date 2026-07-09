@@ -501,18 +501,18 @@ namespace RevitToIfcScheduler.Utilities
                 TokenGetter tokenGetter = new TwoLeggedTokenGetter();
                 var token = await tokenGetter.GetToken();
 
-                var outputFormats = new List<JobPayloadFormat>()
+                var outputFormats = new List<IJobPayloadFormat>()
                 {
-                    new JobIfcOutputFormat
+                    new JobPayloadFormatIFC
                     {
-                        Advanced = new JobIfcOutputFormatAdvanced
+                        Advanced = new JobPayloadFormatAdvancedIFC
                         {
                             ExportSettingName = conversionJob.IfcSettingsSetName
                         }
                     }
                 };
 
-                var regionSpecifier = conversionJob.Region == "EU" ? Region.EMEA : Region.US;
+                var regionSpecifier = conversionJob.Region == "EU" ? Autodesk.ModelDerivative.Model.Region.EMEA : Autodesk.ModelDerivative.Model.Region.US;
 
                 // specify Job details
                 var jobPayload = new JobPayload()
@@ -541,24 +541,21 @@ namespace RevitToIfcScheduler.Utilities
                 try
                 {
                     var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
-                    var jobResponse = await modelDerivativeClient.JobsApi.StartJobAsync(jobPayload: jobPayload, accessToken: token);
+                    var jobResponse = await modelDerivativeClient.StartJobAsync(jobPayload: jobPayload, accessToken: token);
 
-                    if (jobResponse.HttpResponse.IsSuccessStatusCode)
+                    conversionJob.Status = string.Equals(jobResponse.Result, "created", StringComparison.OrdinalIgnoreCase)
+                               ? ConversionJobStatus.Unchanged
+                               : ConversionJobStatus.Processing;
+
+                    if (conversionJob.Status == ConversionJobStatus.Unchanged)
                     {
-                        conversionJob.Status = jobResponse.HttpResponse.StatusCode == HttpStatusCode.Created
-                                   ? ConversionJobStatus.Unchanged
-                                   : ConversionJobStatus.Processing;
-
-                        if (conversionJob.Status == ConversionJobStatus.Unchanged)
-                        {
-                            conversionJob.JobFinished = DateTime.UtcNow;
-                            conversionJob.AddLog(($"This file has not changed since the last conversion to IFC. {conversionJob.Notes}").Trim());
-                        }
-
-                        BackgroundJob.Enqueue<HangfireJobs>(x => x.PollConversionJob(conversionJob.Id));
-
-                        Log.Information($"Processing Conversion Job: {jobResponse.Content.ToString()} {conversionJob.Id}");
+                        conversionJob.JobFinished = DateTime.UtcNow;
+                        conversionJob.AddLog(($"This file has not changed since the last conversion to IFC. {conversionJob.Notes}").Trim());
                     }
+
+                    BackgroundJob.Enqueue<HangfireJobs>(x => x.PollConversionJob(conversionJob.Id));
+
+                    Log.Information($"Processing Conversion Job: {jobResponse.ToString()} {conversionJob.Id}");
                 }
                 catch (ModelDerivativeApiException ex)
                 {
@@ -626,7 +623,7 @@ namespace RevitToIfcScheduler.Utilities
 
         public static async Task<Manifest> GetModelDerivativeManifest(string urn, string token, string region)
         {
-            var regionSpecifier = (region == "EU") ? Region.EMEA : Region.US;
+            var regionSpecifier = (region == "EU") ? Autodesk.ModelDerivative.Model.Region.EMEA : Autodesk.ModelDerivative.Model.Region.US;
             var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
             var response = await modelDerivativeClient.GetManifestAsync(urn, region: regionSpecifier, accessToken: token);
 
@@ -702,7 +699,7 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var regionSpecifier = (conversionJob.Region == "EU") ? Region.EMEA : Region.US;
+                var regionSpecifier = (conversionJob.Region == "EU") ? Autodesk.ModelDerivative.Model.Region.EMEA : Autodesk.ModelDerivative.Model.Region.US;
                 var results = storageLocation.Replace("urn:adsk.objects:os.object:", string.Empty).Split(new char[] { '/' });
                 if (results.Length < 2)
                     throw new InvalidOperationException("Failed to get storage info for the source RVT file.");
@@ -711,21 +708,9 @@ namespace RevitToIfcScheduler.Utilities
                 var objectName = results[1];
 
                 var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
-                var response = await modelDerivativeClient.DerivativesApi.GetDerivativeUrlAsync(derivativeUrn, fileUrn, region: regionSpecifier, accessToken: token);
-                var cloudFrontPolicyName = "CloudFront-Policy";
-                var cloudFrontKeyPairIdName = "CloudFront-Key-Pair-Id";
-                var cloudFrontSignatureName = "CloudFront-Signature";
+                var response = await modelDerivativeClient.GetDerivativeUrlAsync(urn: fileUrn, derivativeUrn: derivativeUrn, region: regionSpecifier, accessToken: token);
 
-                var cloudFrontCookies = response.HttpResponse.Headers.GetValues("Set-Cookie");
-
-                var cloudFrontPolicy = cloudFrontCookies.Where(value => value.Contains(cloudFrontPolicyName)).FirstOrDefault()?.Trim().Substring(cloudFrontPolicyName.Length + 1).Split(";").First();
-                var cloudFrontKeyPairId = cloudFrontCookies.Where(value => value.Contains(cloudFrontKeyPairIdName)).FirstOrDefault()?.Trim().Substring(cloudFrontKeyPairIdName.Length + 1).Split(";").First();
-                var cloudFrontSignature = cloudFrontCookies.Where(value => value.Contains(cloudFrontSignatureName)).FirstOrDefault()?.Trim().Substring(cloudFrontSignatureName.Length + 1).Split(";").First();
-
-                var result = response.Content;
-                var downloadUrl = result.Url.ToString();
-                var queryString = "?Key-Pair-Id=" + cloudFrontKeyPairId + "&Signature=" + cloudFrontSignature + "&Policy=" + cloudFrontPolicy;
-                downloadUrl += queryString;
+                var downloadUrl = response.Url;
 
                 string filePath = Path.Combine(_localTempFolder, objectName);
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
