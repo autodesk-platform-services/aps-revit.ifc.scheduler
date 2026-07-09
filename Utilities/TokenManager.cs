@@ -70,17 +70,14 @@ namespace RevitToIfcScheduler.Utilities
             var redirectUrl = GetRedirectUrl(httpContext);
             var authenticationClient = new AuthenticationClient(_sdkManager);
 
-            var strResponseType = Utils.GetEnumString(ResponseType.Code);
             var scopes = ScopeStringToArray(AppConfig.ThreeLegScope);
-            var strScopes = String.Join(" ", scopes.Select(x => Utils.GetEnumString(x)));
 
-            string apsAuthUrl = authenticationClient.tokenApi.Authorize(
+            string apsAuthUrl = authenticationClient.Authorize(
                 AppConfig.ClientId,
-                strResponseType,
+                ResponseType.Code,
                 redirectUrl,
-                state,
-                null,
-                strScopes
+                scopes,
+                state: state
             );
 
             return apsAuthUrl;
@@ -94,9 +91,9 @@ namespace RevitToIfcScheduler.Utilities
                 var authenticationClient = new AuthenticationClient(_sdkManager);
                 var threeLeggedToken = await authenticationClient.GetThreeLeggedTokenAsync(
                     AppConfig.ClientId,
-                    AppConfig.ClientSecret,
                     code,
-                    redirectUrl
+                    redirectUrl,
+                    AppConfig.ClientSecret
                 );
 
                 return threeLeggedToken;
@@ -112,15 +109,15 @@ namespace RevitToIfcScheduler.Utilities
             try
             {
                 var authenticationClient = new AuthenticationClient(_sdkManager);
-                var threeLeggedToken = await authenticationClient.GetRefreshTokenAsync(
+                var threeLeggedToken = await authenticationClient.RefreshTokenAsync(
+                    user.Refresh,
                     AppConfig.ClientId,
                     AppConfig.ClientSecret,
-                    user.Refresh,
                     ScopeStringToArray(AppConfig.ThreeLegScope)
                 );
 
                 user.Token = threeLeggedToken.AccessToken;
-                user.Refresh = threeLeggedToken._RefreshToken;
+                user.Refresh = threeLeggedToken.RefreshToken;
                 user.TokenExpiration = DateTime.UtcNow.AddSeconds(threeLeggedToken.ExpiresIn.HasValue ? threeLeggedToken.ExpiresIn.Value : 0);
 
                 try
