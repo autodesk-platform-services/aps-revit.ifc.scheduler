@@ -83,52 +83,51 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                // Todo: replace codes with new SDK after contents data has the `links.webView` field.
+                var dataManagementClient = new DataManagementClient(_sdkManager);
                 var children = new List<Base>();
 
-                var url = $"{AppConfig.ApsBaseUrl}/data/v1/projects/{projectId}/folders/{folderId}/contents";
+                var pageNumber = 0;
+                const int pageLimit = 200;
                 while (true)
                 {
-                    var data = await url
-                        .WithOAuthBearerToken(token)
-                        .GetJsonAsync<dynamic>();
+                    var folderContents = await dataManagementClient.GetFolderContentsAsync(projectId, folderId, pageNumber: pageNumber, pageLimit: pageLimit, accessToken: token);
 
-                    foreach (dynamic item in data.data)
+                    foreach (var item in folderContents.Data)
                     {
-                        if (item.attributes.extension.type == "folders:autodesk.bim360:Folder")
+                        if (item is FolderData folder)
                         {
                             children.Add(new RevitToIfcScheduler.Models.Folder()
                             {
-                                Id = item.id,
-                                Name = item.attributes.name,
-                                WebView = item.links.webView.href
+                                Id = folder.Id,
+                                Name = folder.Attributes.Name,
+                                WebView = folder.Links.Webview.Href
                             });
                         }
                     }
 
-                    if (data.included != null)
+                    if (folderContents.Included != null)
                     {
-                        foreach (dynamic item in data.included)
+                        foreach (var version in folderContents.Included)
                         {
-                            if (item.attributes.fileType == "rvt" || item.attributes.fileType == "ifc")
+                            if (version.Attributes.FileType == "rvt" || version.Attributes.FileType == "ifc")
                             {
                                 children.Add(new File()
                                 {
-                                    Id = item.id,
-                                    Name = item.attributes.name,
-                                    ItemId = item.relationships.item.data.id,
-                                    FileType = item.attributes.fileType,
+                                    Id = version.Id,
+                                    Name = version.Attributes.Name,
+                                    ItemId = version.Relationships.Item.Data.Id,
+                                    FileType = version.Attributes.FileType,
                                     FolderId = folderId,
-                                    IsCompositeDesign = item.attributes.extension.data.isCompositeDesign ?? false,
-                                    WebView = item.links.webView.href
+                                    IsCompositeDesign = version.Attributes.Extension.Data.TryGetValue("isCompositeDesign", out var isCompositeDesignValue) && bool.Parse(isCompositeDesignValue.ToString()),
+                                    WebView = version.Links.Webview.Href
                                 });
                             }
                         }
                     }
 
-                    if (data.links != null && data.links.next != null && data.links.next.href != null)
+                    if (folderContents.Links?.Next?.Href != null)
                     {
-                        url = data.links.next.href;
+                        pageNumber++;
                     }
                     else
                     {
