@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Flurl;
 using Microsoft.AspNetCore.Http;
 using Autodesk.SDKManager;
 using Autodesk.Authentication;
@@ -137,8 +136,7 @@ namespace RevitToIfcScheduler.Utilities
 
         public static string GetRedirectUrl(HttpContext httpContext)
         {
-            return ((httpContext.Request.IsHttps ? "https://" : "http://") + httpContext.Request.Host.ToUriComponent())
-                .AppendPathSegments("api", "aps", "oauth", "callback");
+            return $"{(httpContext.Request.IsHttps ? "https" : "http")}://{httpContext.Request.Host.ToUriComponent()}/api/aps/oauth/callback";
         }
 
         public static List<Scopes> ScopeStringToArray(string scopeString)
