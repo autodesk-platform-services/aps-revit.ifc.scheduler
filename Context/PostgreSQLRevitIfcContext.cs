@@ -40,16 +40,6 @@ namespace RevitToIfcScheduler.Context
             : base(options)
         {
         }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseNpgsql(
-                    "Host=localhost;Database=RevitIFCScheduler;Username=postgres;Password=postgres",
-                    b => b.MigrationsAssembly("RevitToIfcScheduler"));
-            }
-        }
     }
 
     public class PostgreSQLRevitIfcContextFactory : IDesignTimeDbContextFactory<PostgreSQLRevitIfcContext>
