@@ -1,6 +1,7 @@
 ﻿# Revit to IFC Scheduler
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET%20-10.0-blue.svg)
+[![node.js](https://img.shields.io/badge/Node.js-22.x-blue.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [![OAuth2](https://img.shields.io/badge/OAuth2-v2-green.svg)](http://aps.autodesk.com/)
@@ -46,7 +47,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2019+ (Windows) or Code (Windows, MacOS).
 * [.NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-* [NodeJS (with NPM)](https://nodejs.org/en/download/)
+* [NodeJS (with NPM)](https://nodejs.org/en/download/) v22 or above (LTS) is required
 * A supported database engine — either SQL Server or PostgreSQL:
   * [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (default)
     * For installing SQL Server on `Windows` machines, please see [Microsoft's SQL Server installation guide](https://docs.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server?view=sql-server-ver15)
