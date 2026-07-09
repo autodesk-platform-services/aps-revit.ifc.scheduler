@@ -199,7 +199,7 @@ namespace RevitToIfcScheduler.Utilities
 
                 var response = await url
                     .WithOAuthBearerToken(token)
-                    .AllowHttpStatus("4xx")
+                    .AllowAnyHttpStatus()
                     .GetAsync();
 
                 if (response.StatusCode == StatusCodes.Status200OK)
