@@ -1,6 +1,6 @@
 ﻿# Revit to IFC Scheduler
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
-![.NET](https://img.shields.io/badge/.NET%20-8.0-blue.svg)
+![.NET](https://img.shields.io/badge/.NET%20-10.0-blue.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [![OAuth2](https://img.shields.io/badge/OAuth2-v2-green.svg)](http://aps.autodesk.com/)
@@ -45,7 +45,7 @@ Users choose either folders or specific files, then choose an IFC Settings Set n
 ### Prerequisites
 
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2019+ (Windows) or Code (Windows, MacOS).
-* [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+* [.NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 * [NodeJS (with NPM)](https://nodejs.org/en/download/)
 * A supported database engine — either SQL Server or PostgreSQL:
   * [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (default)
@@ -288,6 +288,28 @@ dotnet ef migrations add NameOfYourMigrationHere --context PostgreSQLRevitIfcCon
 ###### Hangfire 1.8 upgrade
 
 To enable the PostgreSQL storage provider, the Hangfire packages (`Hangfire.Core`, `Hangfire.SqlServer`, `Hangfire.AspNetCore`) were upgraded from `1.7.28` to `1.8.14`. `Microsoft.EntityFrameworkCore*` was bumped from `8.0.4` to `8.0.11` to match the transitive minimum of `Npgsql.EntityFrameworkCore.PostgreSQL 8.0.11`.
+
+### Breaking Changes when upgrading from .NET 8 to .NET 10
+
+If you are upgrading an existing deployment from .NET 8 to .NET 10, be aware of the following breaking changes and required migration steps:
+
+1. **EF Core 9 — application fails to start after upgrade.** EF Core 9+ throws `PendingModelChangesException` from `Database.Migrate()` if the compiled model differs from the snapshot. After upgrading, add a new empty migration for **both** database providers before first launch:
+
+    ```bash
+    # SQL Server
+    dotnet ef migrations add PostNet10Upgrade --context RevitIfcContext
+
+    # PostgreSQL
+    dotnet ef migrations add PostNet10Upgrade --context PostgreSQLRevitIfcContext --output-dir Migrations/PostgreSQL
+    ```
+
+    This repo already ships with the `PostNet10Upgrade` migrations, so no action is required for a fresh clone — this note applies to forks or branches that upgraded independently.
+
+2. **Flurl.Http 3.x → 4.x — breaking HTTP API change.** The `AllowHttpStatus(string)` overload (e.g. `AllowHttpStatus("4xx")`) was removed in Flurl.Http 4.0. `Utilities/APS.cs` has been updated to use `AllowAnyHttpStatus()`. If you maintain a fork with additional Flurl HTTP call sites, review them for the same pattern.
+
+3. **Serilog 2.x → 4.x — minor breaking changes.** Serilog was bumped from `2.10.0` to `4.3.1`. Review the [Serilog changelog](https://github.com/serilog/serilog/releases) if you experience unexpected logging behavior after upgrading.
+
+4. **.NET SDK 10 — NuGet transitive package audit enabled by default.** `dotnet restore` now audits transitive dependencies for known CVEs and may surface `NU1903`/`NU1904` warnings. Review any warnings that appear and address them, or explicitly acknowledge accepted risk in your build configuration.
 
 ### Troubleshooting
 

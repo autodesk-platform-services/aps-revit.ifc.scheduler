@@ -1,6 +1,6 @@
 # Revit to IFC Scheduler - Deployment Guide
 ![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
-![.NET](https://img.shields.io/badge/.NET%20-8.0-blue.svg)
+![.NET](https://img.shields.io/badge/.NET%20-10.0-blue.svg)
 [![node.js](https://img.shields.io/badge/Node.js-22.x-blue.svg)](https://nodejs.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -10,7 +10,7 @@ The Admin Dashboard tool can be deployed to a range of systems. This guide will 
 
 Please ensure the following are present on your computer:
 * [Visual Studio](https://code.visualstudio.com/): Either Community 2022+ (Windows) or Code (Windows, MacOS).
-* [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+* [.NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 * [NodeJS (with NPM)](https://nodejs.org/en/download/) v22 or above (LTS) is required
 
 ### Resource List
@@ -18,7 +18,7 @@ Please ensure the following are present on your computer:
 The Revit to IFC Scheduler requires the following resources:
 * Autodesk APS App
 * SQL Server Database
-* Windows Server to run .NET 8
+* Windows Server to run .NET 10
 
 ### Basic Steps
 
@@ -111,7 +111,7 @@ Create an App Service instance using the following instructions.
 2. Fill out the resource group and name as desired.
 3. Set the following Instance Details:
    1. Publish: `Code`
-   2. Runtime Stack: `.NET 8`
+   2. Runtime Stack: `.NET 10`
    3. Operating System: `Windows`
    4. Region: Should match the region used for the database and Elastic Search.
 4. Create an App Service Plan with a SKU of S1 or greater.
@@ -119,10 +119,12 @@ Create an App Service instance using the following instructions.
 6. Wait for the webapp to be created, then navigate to the resource page.
 7. Navigate to the `Configuration` page, and set the application settings and connection string required by [Environment Variables](#environment-variables).
 
+**Note.** When upgrading an existing Azure App Service from .NET 8 to .NET 10, you must switch the **Runtime Stack** to `.NET 10` in the App Service **Configuration** blade (General settings tab) before pushing the updated build. Failing to update the runtime stack results in a `502 Bad Gateway` or "The application process exited" error at startup.
+
 
 ### AWS
 
-This application should be run an EC2 instance running Windows Server with IIS enabled, hosting an ASP.NET 8 application.
+This application should be run an EC2 instance running Windows Server with IIS enabled, hosting an ASP.NET 10 application.
 
 For instructions on setting up the EC2 instance, please follow these instructions to deploy the application:
 
@@ -184,7 +186,7 @@ To learn more about running .NET in Visual Studio Code, please see [Using .NET C
 
 ### Azure
 
-To deploy code using Visual Studio Code, please see [Deploy to Azure App Service using Visual Studio Code](https://docs.microsoft.com/en-us/aspnet/core/tutorials/publish-to-azure-webapp-using-vscode?view=aspnetcore-6.0), skipping the `Create an ASP.Net Core MVC Project` section.
+To deploy code using Visual Studio Code, please see [Deploy to Azure App Service using Visual Studio Code](https://docs.microsoft.com/en-us/aspnet/core/tutorials/publish-to-azure-webapp-using-vscode?view=aspnetcore-10.0), skipping the `Create an ASP.Net Core MVC Project` section.
 
 To deploy code using Visual Studio, please follow the instructions below:
 
@@ -193,7 +195,7 @@ To deploy code using Visual Studio, please follow the instructions below:
 * Select `Azure App Service (Windows)` > Next
 * Sign in using the same Account you used in Azure
 * Search and select the appropriate resource group and App Service instance.
-* Set `Configuration` to `Release`, `Target Framework` to `net5.0`, and `Deployment Mode` to `Framework-dependent`.
+* Set `Configuration` to `Release`, `Target Framework` to `net10.0`, and `Deployment Mode` to `Framework-dependent`.
 * Select 'Publish'
 
 ### AWS
@@ -203,6 +205,30 @@ Continue to follow the instructions available at:
 - [Tutorial: How to deploy a .NET sample application using Elastic Beanstalk](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_NET.quickstart.html)
 - [Tutorial: Deploying an ASP.NET core application with Elastic Beanstalk](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/dotnet-core-tutorial.html)
 - [Adding an Amazon RDS DB instance to your .NET application environment](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_NET.rds.html)
+
+## Breaking Changes when upgrading from .NET 8 to .NET 10
+
+If you are upgrading an existing deployment from .NET 8 to .NET 10, be aware of the following breaking changes and required migration steps:
+
+1. **EF Core 9 — application fails to start after upgrade.** EF Core 9+ throws `PendingModelChangesException` from `Database.Migrate()` if the compiled model differs from the snapshot. After upgrading, add a new empty migration for **both** database providers before first launch:
+
+    ```bash
+    # SQL Server
+    dotnet ef migrations add PostNet10Upgrade --context RevitIfcContext
+
+    # PostgreSQL
+    dotnet ef migrations add PostNet10Upgrade --context PostgreSQLRevitIfcContext --output-dir Migrations/PostgreSQL
+    ```
+
+    This repo already ships with the `PostNet10Upgrade` migrations, so no action is required for a fresh clone — this note applies to forks or branches that upgraded independently.
+
+2. **Flurl.Http 3.x → 4.x — breaking HTTP API change.** The `AllowHttpStatus(string)` overload (e.g. `AllowHttpStatus("4xx")`) was removed in Flurl.Http 4.0. `Utilities/APS.cs` has been updated to use `AllowAnyHttpStatus()`. If you maintain a fork with additional Flurl HTTP call sites, review them for the same pattern.
+
+3. **Serilog 2.x → 4.x — minor breaking changes.** Serilog was bumped from `2.10.0` to `4.3.1`. Review the [Serilog changelog](https://github.com/serilog/serilog/releases) if you experience unexpected logging behavior after upgrading.
+
+4. **.NET SDK 10 — NuGet transitive package audit enabled by default.** `dotnet restore` now audits transitive dependencies for known CVEs and may surface `NU1903`/`NU1904` warnings. Review any warnings that appear and address them, or explicitly acknowledge accepted risk in your build configuration.
+
+5. **Azure App Service / AWS Elastic Beanstalk — runtime stack must be updated.** For **Azure App Service**, switch the Runtime Stack to `.NET 10` in the portal **Configuration** blade (General settings tab) before pushing the updated build. For **AWS Elastic Beanstalk**, update the platform version to the .NET 10 Windows platform before redeploying. Failure to update the runtime stack results in a `502 Bad Gateway` or "The application process exited" error at startup.
 
 ## Tips and Tricks
 
