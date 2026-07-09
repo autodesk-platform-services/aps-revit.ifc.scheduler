@@ -16,9 +16,11 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
+using System;
 using RevitToIfcScheduler.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace RevitToIfcScheduler.Context
 {
@@ -26,9 +28,23 @@ namespace RevitToIfcScheduler.Context
     {
         public RevitIfcContext CreateDbContext(string[] args)
         {
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile($"appsettings.{env}.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var connectionString = config.GetConnectionString("SqlDB");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "ConnectionStrings:SqlDB is not set. Add it to appsettings.Development.json or set it as an environment variable.");
+            }
+
             var optionsBuilder = new DbContextOptionsBuilder<RevitIfcContext>();
             optionsBuilder.UseSqlServer(
-                "Server=(localdb)\\MSSQLLocalDB;Database=RevitIFCScheduler;Trusted_Connection=True;",
+                connectionString,
                 b => b.MigrationsAssembly("RevitToIfcScheduler"));
 
             return new RevitIfcContext(optionsBuilder.Options);
