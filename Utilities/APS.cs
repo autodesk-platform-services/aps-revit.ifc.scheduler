@@ -34,6 +34,7 @@ using Serilog;
 using Autodesk.SDKManager;
 using Autodesk.DataManagement;
 using Autodesk.Oss;
+using Autodesk.Oss.Model;
 using Autodesk.ModelDerivative;
 using Autodesk.ModelDerivative.Model;
 using Autodesk.DataManagement.Model;
@@ -194,23 +195,19 @@ namespace RevitToIfcScheduler.Utilities
             try
             {
                 var token = await new TwoLeggedTokenGetter().GetToken();
-                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets/{bucketKey}/details";
+                var ossClient = new OssClient(_sdkManager);
 
-                var response = await url
-                    .WithOAuthBearerToken(token)
-                    .AllowAnyHttpStatus()
-                    .GetAsync();
-
-                if (response.StatusCode == StatusCodes.Status200OK)
+                try
                 {
+                    await ossClient.GetBucketDetailsAsync(bucketKey, accessToken: token);
                     Log.Information("Bucket Exists");
                 }
-                else if (response.StatusCode == StatusCodes.Status404NotFound)
+                catch (OssApiException ex) when (ex.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
                 {
                     Log.Information("Bucket Does not Exist");
                     await CreateTransientBucket(bucketKey, token);
                 }
-                else
+                catch (OssApiException)
                 {
                     Log.Warning("Bucket owned by another ClientID");
                 }
