@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -145,7 +146,9 @@ namespace RevitToIfcScheduler
             
             //Add service for accessing current HttpContext
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            
+
+            services.AddHttpClient();
+
             services.AddControllers();
             
             services.AddMvcCore().AddNewtonsoftJson(options =>
@@ -165,7 +168,7 @@ namespace RevitToIfcScheduler
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime, IHttpClientFactory httpClientFactory)
         {
             if (env.IsDevelopment())
             {
@@ -207,7 +210,7 @@ namespace RevitToIfcScheduler
             string? viteUrl = null;
             if (env.IsDevelopment())
             {
-                viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(env.ContentRootPath, lifetime.ApplicationStopping);
+                viteUrl = Utilities.ViteServerMiddleware.EnsureStarted(httpClientFactory, env.ContentRootPath, lifetime.ApplicationStopping);
             }
 
             app.UseSpa(spa =>

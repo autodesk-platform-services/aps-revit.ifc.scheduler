@@ -18,6 +18,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using RevitToIfcScheduler.Context;
 using RevitToIfcScheduler.Models;
@@ -33,12 +34,14 @@ namespace RevitToIfcScheduler.Controllers
 {
     public class AuthController: ControllerBase
     {
-        public AuthController(Context.RevitIfcContext revitIfcContext)
+        public AuthController(Context.RevitIfcContext revitIfcContext, IHttpClientFactory httpClientFactory)
         {
             RevitIfcContext = revitIfcContext;
+            HttpClientFactory = httpClientFactory;
         }
-         
+
         private Context.RevitIfcContext RevitIfcContext { get; set; }
+        private IHttpClientFactory HttpClientFactory { get; set; }
         
         
         [HttpGet]
@@ -58,7 +61,7 @@ namespace RevitToIfcScheduler.Controllers
                 {
                     var accounts = await RevitIfcContext.Accounts.ToListAsync();
                     var twoLeggedToken = await TokenManager.GetTwoLeggedToken();
-                    await user.FetchPermissions(accounts, twoLeggedToken);
+                    await user.FetchPermissions(accounts, twoLeggedToken, HttpClientFactory);
                     try
                     {
                         RevitIfcContext.Users.Update(user);
