@@ -21,9 +21,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using RevitToIfcScheduler.Utilities;
+using Serilog;
 
 namespace RevitToIfcScheduler.Models
 {
@@ -79,6 +81,13 @@ namespace RevitToIfcScheduler.Models
             Context.RevitIfcContext revitIfcContext = provider.GetService<Context.RevitIfcContext>();
 
             var schedule = await revitIfcContext.Schedules.FindAsync(id);
+
+            if (schedule == null)
+            {
+                Log.Warning($"Schedule.Run skipped: no schedule found for id {id}");
+                RecurringJob.RemoveIfExists(id.ToString());
+                return;
+            }
 
             var filesFromFolders = await APS.GetAllChildRevitFiles(schedule.ProjectId, schedule.FolderUrns, new TwoLeggedTokenGetter());
 
