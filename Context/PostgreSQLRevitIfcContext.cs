@@ -16,8 +16,10 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace RevitToIfcScheduler.Context
 {
@@ -40,25 +42,29 @@ namespace RevitToIfcScheduler.Context
             : base(options)
         {
         }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseNpgsql(
-                    "Host=localhost;Database=RevitIFCScheduler;Username=postgres;Password=postgres",
-                    b => b.MigrationsAssembly("RevitToIfcScheduler"));
-            }
-        }
     }
 
     public class PostgreSQLRevitIfcContextFactory : IDesignTimeDbContextFactory<PostgreSQLRevitIfcContext>
     {
         public PostgreSQLRevitIfcContext CreateDbContext(string[] args)
         {
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile($"appsettings.{env}.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var connectionString = config.GetConnectionString("SqlDB");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "ConnectionStrings:SqlDB is not set. Add it to appsettings.Development.json or set it as an environment variable.");
+            }
+
             var optionsBuilder = new DbContextOptionsBuilder<RevitIfcContext>();
             optionsBuilder.UseNpgsql(
-                "Host=localhost;Database=RevitIFCScheduler;Username=postgres;Password=postgres",
+                connectionString,
                 b => b.MigrationsAssembly("RevitToIfcScheduler"));
 
             return new PostgreSQLRevitIfcContext(optionsBuilder.Options);
