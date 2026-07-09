@@ -24,7 +24,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Flurl.Http;
 using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +46,7 @@ namespace RevitToIfcScheduler.Utilities
     public static class APS
     {
         private static readonly SDKManager _sdkManager = SdkManagerBuilder.Create().Build();
+        private static readonly HttpClient _httpClient = new();
         private static readonly string _localTempFolder = Path.Combine(Directory.GetCurrentDirectory(), "tmp");
         private static readonly string[] allowedFolderTypes = ["normal", "plan"];
 
@@ -700,21 +700,15 @@ namespace RevitToIfcScheduler.Utilities
                 var objectName = results[1];
 
                 var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
-                var response = await modelDerivativeClient.GetDerivativeUrlAsync(urn: fileUrn, derivativeUrn: derivativeUrn, region: regionSpecifier, accessToken: token);
-
-                var downloadUrl = response.Url;
+                var derivativeDownload = await modelDerivativeClient.GetDerivativeUrlAsync(urn: fileUrn, derivativeUrn: derivativeUrn, region: regionSpecifier, accessToken: token);
 
                 string filePath = Path.Combine(_localTempFolder, objectName);
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                var downloadStream = await downloadUrl
-                        .WithOAuthBearerToken(token)
-                        .GetStreamAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
-
-                using (FileStream outputFileStream = new FileStream(filePath, FileMode.Create))
+                using (var fileStream = await _httpClient.GetStreamAsync(derivativeDownload.Url))
+                using (var outputFileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    // downloadStream.Seek(0, SeekOrigin.Begin);
-                    downloadStream.CopyTo(outputFileStream);
+                    await fileStream.CopyToAsync(outputFileStream);
                 }
 
                 var ossClient = new OssClient(_sdkManager);
