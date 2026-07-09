@@ -43,6 +43,5 @@ namespace RevitToIfcScheduler.Models
         public static IServiceCollection Services { get; set; }
         public static string BucketKey { get; set; }
         public static bool IncludeShallowCopies { get; set; }
-        public static string ApsBaseUrl { get; set; }
     }
 }
