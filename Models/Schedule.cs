@@ -100,7 +100,7 @@ namespace RevitToIfcScheduler.Models
             await Converter.CreateConversionJobs(schedule.HubId, schedule.Region, schedule.ProjectId, filesFromFolders,
                 schedule.IfcSettingsName, schedule.Name, schedule);
             
-            schedule.LastStart = DateTime.Now;
+            schedule.LastStart = DateTime.UtcNow;
             schedule.LastFileCount = filesFromFolders.Count;
             revitIfcContext.Update(schedule);
             await revitIfcContext.SaveChangesAsync();
