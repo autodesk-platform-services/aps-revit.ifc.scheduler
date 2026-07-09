@@ -60,13 +60,13 @@ namespace RevitToIfcScheduler.Utilities
                 foreach (var folder in foldersData.Data)
                 {
                     string name = folder.Attributes.Name;
-                    if (folder.Attributes.Hidden == false && IsValidTopFolder(name) && allowedFolderTypes.Contains(folder.Attributes.Extension.Data.FolderType))
+                    if (folder.Attributes.Hidden == false && IsValidTopFolder(name) && allowedFolderTypes.Contains(folder.Attributes.Extension.Data["folderType"]?.ToString()))
                     {
                         folders.Add(new RevitToIfcScheduler.Models.Folder()
                         {
                             Id = folder.Id,
                             Name = folder.Attributes.Name,
-                            WebView = folder.Links.WebView.Href
+                            WebView = folder.Links.Webview.Href
                         });
                     }
                 }
@@ -447,7 +447,7 @@ namespace RevitToIfcScheduler.Utilities
                     TokenGetter tokenGetter = new TwoLeggedTokenGetter();
                     var token = await tokenGetter.GetToken();
                     var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
-                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
+                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.Webview.Href);
                 }
 
                 //Look for identical past jobs -- if already completed, don't repeat.

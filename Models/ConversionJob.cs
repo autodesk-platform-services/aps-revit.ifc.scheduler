@@ -158,7 +158,7 @@ namespace RevitToIfcScheduler.Models
                     conversionJob.AddLog($"Adding Folder ID ...");
                     var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
                     conversionJob.FolderId = folderData.Data.Id;
-                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
+                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.Webview.Href);
 
                     conversionJob.AddLog($"Added Folder ID: {conversionJob.FolderId}");
                     revitIfcContext.ConversionJobs.Update(conversionJob);
@@ -169,7 +169,7 @@ namespace RevitToIfcScheduler.Models
                 {
                     conversionJob.AddLog($"Adding Folder Url ...");
                     var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
-                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
+                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.Webview.Href);
 
                     conversionJob.AddLog($"Added Folder Url: {conversionJob.FolderUrl}");
                     revitIfcContext.ConversionJobs.Update(conversionJob);
