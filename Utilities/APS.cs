@@ -753,24 +753,24 @@ namespace RevitToIfcScheduler.Utilities
             var dataManagementClient = new DataManagementClient(_sdkManager);
             var storagePayload = new StoragePayload()
             {
-                Jsonapi = new ModifyFolderPayloadJsonapi()
+                Jsonapi = new JsonApiVersion()
                 {
-                    _Version = VersionNumber._10
+                    VarVersion = JsonApiVersionValue._10
                 },
                 Data = new StoragePayloadData()
                 {
-                    Type = Autodesk.DataManagement.Model.Type.Objects,
+                    Type = TypeObject.Objects,
                     Attributes = new StoragePayloadDataAttributes()
                     {
                         Name = fileName
                     },
                     Relationships = new StoragePayloadDataRelationships()
                     {
-                        Target = new ModifyFolderPayloadDataRelationshipsParent()
+                        Target = new StoragePayloadDataRelationshipsTarget()
                         {
-                            Data = new ModifyFolderPayloadDataRelationshipsParentData()
+                            Data = new StoragePayloadDataRelationshipsTargetData()
                             {
-                                Type = Autodesk.DataManagement.Model.Type.Folders,
+                                Type = TypeFolderItemsForStorage.Folders,
                                 Id = folderId
                             }
                         }
@@ -827,37 +827,37 @@ namespace RevitToIfcScheduler.Utilities
                 var dataManagementClient = new DataManagementClient(_sdkManager);
                 var itemPayload = new ItemPayload()
                 {
-                    Jsonapi = new ModifyFolderPayloadJsonapi()
+                    Jsonapi = new JsonApiVersion()
                     {
-                        _Version = VersionNumber._10
+                        VarVersion = JsonApiVersionValue._10
                     },
                     Data = new ItemPayloadData()
                     {
-                        Type = Autodesk.DataManagement.Model.Type.Items,
+                        Type = TypeItem.Items,
                         Attributes = new ItemPayloadDataAttributes()
                         {
                             DisplayName = name,
                             Extension = new ItemPayloadDataAttributesExtension()
                             {
-                                Type = Autodesk.DataManagement.Model.Type.ItemsautodeskBim360File,
-                                _Version = VersionNumber._10
+                                Type = "items:autodesk.bim360:File",
+                                VarVersion = "1.0"
                             }
                         },
                         Relationships = new ItemPayloadDataRelationships()
                         {
-                            Tip = new FolderPayloadDataRelationshipsParent()
+                            Tip = new ItemPayloadDataRelationshipsTip()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new ItemPayloadDataRelationshipsTipData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Versions,
+                                    Type = TypeVersion.Versions,
                                     Id = "1"
                                 }
                             },
-                            Parent = new FolderPayloadDataRelationshipsParent()
+                            Parent = new ItemPayloadDataRelationshipsParent()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new ItemPayloadDataRelationshipsParentData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Folders,
+                                    Type = TypeFolder.Folders,
                                     Id = folderId
                                 }
                             }
@@ -867,24 +867,24 @@ namespace RevitToIfcScheduler.Utilities
                     {
                         new ItemPayloadIncluded()
                         {
-                            Type = Autodesk.DataManagement.Model.Type.Versions,
+                            Type = TypeVersion.Versions,
                             Id = "1",
                             Attributes = new ItemPayloadIncludedAttributes()
                             {
                                 Name = name,
-                                Extension = new ItemPayloadDataAttributesExtension()
+                                Extension = new ItemPayloadIncludedAttributesExtension()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.VersionsautodeskBim360File,
-                                    _Version = VersionNumber._10
+                                    Type = "versions:autodesk.bim360:File",
+                                    VarVersion = "1.0"
                                 }
                             },
                             Relationships = new ItemPayloadIncludedRelationships()
                             {
-                                Storage = new FolderPayloadDataRelationshipsParent()
+                                Storage = new ItemPayloadIncludedRelationshipsStorage()
                                 {
-                                    Data = new FolderPayloadDataRelationshipsParentData()
+                                    Data = new ItemPayloadIncludedRelationshipsStorageData()
                                     {
-                                        Type = Autodesk.DataManagement.Model.Type.Objects,
+                                        Type = TypeObject.Objects,
                                         Id = objectId
                                     }
                                 }
@@ -920,37 +920,37 @@ namespace RevitToIfcScheduler.Utilities
                 var dataManagementClient = new DataManagementClient(_sdkManager);
                 var versionPayload = new VersionPayload()
                 {
-                    Jsonapi = new ModifyFolderPayloadJsonapi()
+                    Jsonapi = new JsonApiVersion()
                     {
-                        _Version = VersionNumber._10
+                        VarVersion = JsonApiVersionValue._10
                     },
                     Data = new VersionPayloadData()
                     {
-                        Type = Autodesk.DataManagement.Model.Type.Versions,
+                        Type = TypeVersion.Versions,
                         Attributes = new VersionPayloadDataAttributes()
                         {
                             Name = name,
-                            Extension = new RelationshipRefsPayloadDataMetaExtension()
+                            Extension = new VersionPayloadDataAttributesExtension()
                             {
-                                Type = Autodesk.DataManagement.Model.Type.VersionsautodeskBim360File,
-                                _Version = VersionNumber._10
+                                Type = "versions:autodesk.bim360:File",
+                                VarVersion = "1.0"
                             }
                         },
                         Relationships = new VersionPayloadDataRelationships()
                         {
-                            Item = new FolderPayloadDataRelationshipsParent()
+                            Item = new VersionPayloadDataRelationshipsItem()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new VersionPayloadDataRelationshipsItemData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Items,
+                                    Type = TypeItem.Items,
                                     Id = itemId
                                 }
                             },
-                            Storage = new FolderPayloadDataRelationshipsParent()
+                            Storage = new VersionPayloadDataRelationshipsStorage()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new VersionPayloadDataRelationshipsStorageData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Objects,
+                                    Type = TypeObject.Objects,
                                     Id = objectId
                                 }
                             }
