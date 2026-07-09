@@ -40,6 +40,12 @@ namespace RevitToIfcScheduler.Utilities
 
                 var conversionJob = await _revitIfcContext.ConversionJobs.FindAsync(conversionJobId);
 
+                if (conversionJob == null)
+                {
+                    Log.Warning($"PollConversionJob: ConversionJob {conversionJobId} not found; skipping.");
+                    return;
+                }
+
                 var token = await new TwoLeggedTokenGetter().GetToken();
                 var manifest = await APS.GetModelDerivativeManifest(conversionJob.EncodedStorageUrn, token, conversionJob.Region);
 
