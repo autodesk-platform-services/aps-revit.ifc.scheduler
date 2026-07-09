@@ -608,6 +608,11 @@ namespace RevitToIfcScheduler.Utilities
             catch (Exception exception)
             {
                 var conversionJob = await revitIfcContext.ConversionJobs.FindAsync(conversionJobId);
+                if (conversionJob == null)
+                {
+                    Log.Warning($"BeginConversionJob: ConversionJob {conversionJobId} not found in catch handler; re-throwing original exception.");
+                    throw;
+                }
                 conversionJob.AddLog($"Conversion Failed: {exception.Message}");
                 conversionJob.Status = ConversionJobStatus.Failed;
                 conversionJob.JobFinished = DateTime.UtcNow;
