@@ -24,7 +24,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Flurl.Http;
 using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +33,7 @@ using Serilog;
 using Autodesk.SDKManager;
 using Autodesk.DataManagement;
 using Autodesk.Oss;
+using Autodesk.Oss.Model;
 using Autodesk.ModelDerivative;
 using Autodesk.ModelDerivative.Model;
 using Autodesk.DataManagement.Model;
@@ -46,6 +46,7 @@ namespace RevitToIfcScheduler.Utilities
     public static class APS
     {
         private static readonly SDKManager _sdkManager = SdkManagerBuilder.Create().Build();
+        private static readonly HttpClient _httpClient = new();
         private static readonly string _localTempFolder = Path.Combine(Directory.GetCurrentDirectory(), "tmp");
         private static readonly string[] allowedFolderTypes = ["normal", "plan"];
 
@@ -60,13 +61,13 @@ namespace RevitToIfcScheduler.Utilities
                 foreach (var folder in foldersData.Data)
                 {
                     string name = folder.Attributes.Name;
-                    if (folder.Attributes.Hidden == false && IsValidTopFolder(name) && allowedFolderTypes.Contains(folder.Attributes.Extension.Data.FolderType))
+                    if (folder.Attributes.Hidden == false && IsValidTopFolder(name) && allowedFolderTypes.Contains(folder.Attributes.Extension.Data["folderType"]?.ToString()))
                     {
                         folders.Add(new RevitToIfcScheduler.Models.Folder()
                         {
                             Id = folder.Id,
                             Name = folder.Attributes.Name,
-                            WebView = folder.Links.WebView.Href
+                            WebView = folder.Links.Webview.Href
                         });
                     }
                 }
@@ -83,52 +84,51 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                // Todo: replace codes with new SDK after contents data has the `links.webView` field.
+                var dataManagementClient = new DataManagementClient(_sdkManager);
                 var children = new List<Base>();
 
-                var url = $"{AppConfig.ApsBaseUrl}/data/v1/projects/{projectId}/folders/{folderId}/contents";
+                var pageNumber = 0;
+                const int pageLimit = 200;
                 while (true)
                 {
-                    var data = await url
-                        .WithOAuthBearerToken(token)
-                        .GetJsonAsync<dynamic>();
+                    var folderContents = await dataManagementClient.GetFolderContentsAsync(projectId, folderId, pageNumber: pageNumber, pageLimit: pageLimit, accessToken: token);
 
-                    foreach (dynamic item in data.data)
+                    foreach (var item in folderContents.Data)
                     {
-                        if (item.attributes.extension.type == "folders:autodesk.bim360:Folder")
+                        if (item is FolderData folder)
                         {
                             children.Add(new RevitToIfcScheduler.Models.Folder()
                             {
-                                Id = item.id,
-                                Name = item.attributes.name,
-                                WebView = item.links.webView.href
+                                Id = folder.Id,
+                                Name = folder.Attributes.Name,
+                                WebView = folder.Links.Webview.Href
                             });
                         }
                     }
 
-                    if (data.included != null)
+                    if (folderContents.Included != null)
                     {
-                        foreach (dynamic item in data.included)
+                        foreach (var version in folderContents.Included)
                         {
-                            if (item.attributes.fileType == "rvt" || item.attributes.fileType == "ifc")
+                            if (version.Attributes.FileType == "rvt" || version.Attributes.FileType == "ifc")
                             {
                                 children.Add(new File()
                                 {
-                                    Id = item.id,
-                                    Name = item.attributes.name,
-                                    ItemId = item.relationships.item.data.id,
-                                    FileType = item.attributes.fileType,
+                                    Id = version.Id,
+                                    Name = version.Attributes.Name,
+                                    ItemId = version.Relationships.Item.Data.Id,
+                                    FileType = version.Attributes.FileType,
                                     FolderId = folderId,
-                                    IsCompositeDesign = item.attributes.extension.data.isCompositeDesign ?? false,
-                                    WebView = item.links.webView.href
+                                    IsCompositeDesign = version.Attributes.Extension.Data.TryGetValue("isCompositeDesign", out var isCompositeDesignValue) && bool.Parse(isCompositeDesignValue.ToString()),
+                                    WebView = version.Links.Webview.Href
                                 });
                             }
                         }
                     }
 
-                    if (data.links != null && data.links.next != null && data.links.next.href != null)
+                    if (folderContents.Links?.Next?.Href != null)
                     {
-                        url = data.links.next.href;
+                        pageNumber++;
                     }
                     else
                     {
@@ -195,23 +195,19 @@ namespace RevitToIfcScheduler.Utilities
             try
             {
                 var token = await new TwoLeggedTokenGetter().GetToken();
-                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets/{bucketKey}/details";
+                var ossClient = new OssClient(_sdkManager);
 
-                var response = await url
-                    .WithOAuthBearerToken(token)
-                    .AllowHttpStatus("4xx")
-                    .GetAsync();
-
-                if (response.StatusCode == StatusCodes.Status200OK)
+                try
                 {
+                    await ossClient.GetBucketDetailsAsync(bucketKey, accessToken: token);
                     Log.Information("Bucket Exists");
                 }
-                else if (response.StatusCode == StatusCodes.Status404NotFound)
+                catch (OssApiException ex) when (ex.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
                 {
                     Log.Information("Bucket Does not Exist");
                     await CreateTransientBucket(bucketKey, token);
                 }
-                else
+                catch (OssApiException)
                 {
                     Log.Warning("Bucket owned by another ClientID");
                 }
@@ -228,17 +224,13 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets";
-                var body = new
+                var ossClient = new OssClient(_sdkManager);
+                var regionEnum = region == "EU" ? Autodesk.Oss.Model.Region.EMEA : Autodesk.Oss.Model.Region.US;
+                await ossClient.CreateBucketAsync(regionEnum, new CreateBucketsPayload
                 {
-                    bucketKey,
-                    policyKey = "transient"
-                };
-
-                await url
-                    .WithHeader("x-ads-region", region)
-                    .WithOAuthBearerToken(token)
-                    .PostJsonAsync(body);
+                    BucketKey = bucketKey,
+                    PolicyKey = PolicyKey.Transient
+                }, accessToken: token);
             }
             catch (Exception exception)
             {
@@ -390,8 +382,8 @@ namespace RevitToIfcScheduler.Utilities
                 revitIfcContext.ConversionJobs.Update(conversionJob);
                 await revitIfcContext.SaveChangesAsync();
 
-                await ossClient.Download(sourceStorageBucketKey, sourceStorageObjectKey, filePath, token, CancellationToken.None);
-                var uploadResponse = await ossClient.Upload(AppConfig.BucketKey, objectName, filePath, token, CancellationToken.None);
+                await ossClient.DownloadObjectAsync(sourceStorageBucketKey, sourceStorageObjectKey, filePath, accessToken: token);
+                var uploadResponse = await ossClient.UploadObjectAsync(AppConfig.BucketKey, objectName, filePath, accessToken: token);
 
                 Log.Information("File fully uploaded to OSS");
                 conversionJob.AddLog($"File fully uploaded to OSS");
@@ -447,7 +439,7 @@ namespace RevitToIfcScheduler.Utilities
                     TokenGetter tokenGetter = new TwoLeggedTokenGetter();
                     var token = await tokenGetter.GetToken();
                     var folderData = await APS.GetFileParentFolderData(conversionJob.ProjectId, conversionJob.ItemId, token);
-                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.WebView.Href);
+                    conversionJob.FolderUrl = System.Web.HttpUtility.UrlDecode(folderData.Data.Links.Webview.Href);
                 }
 
                 //Look for identical past jobs -- if already completed, don't repeat.
@@ -491,6 +483,12 @@ namespace RevitToIfcScheduler.Utilities
             {
 
                 var conversionJob = await revitIfcContext.ConversionJobs.FindAsync(conversionJobId);
+                if (conversionJob == null)
+                {
+                    Log.Warning($"BeginConversionJob: ConversionJob {conversionJobId} not found; skipping.");
+                    return;
+                }
+
                 if (conversionJob.IsCompositeDesign && string.IsNullOrWhiteSpace(conversionJob.InputStorageLocation))
                 {
                     conversionJob.InputStorageLocation = await MoveFileToOss(conversionJob, revitIfcContext);
@@ -501,18 +499,18 @@ namespace RevitToIfcScheduler.Utilities
                 TokenGetter tokenGetter = new TwoLeggedTokenGetter();
                 var token = await tokenGetter.GetToken();
 
-                var outputFormats = new List<JobPayloadFormat>()
+                var outputFormats = new List<IJobPayloadFormat>()
                 {
-                    new JobIfcOutputFormat
+                    new JobPayloadFormatIFC
                     {
-                        Advanced = new JobIfcOutputFormatAdvanced
+                        Advanced = new JobPayloadFormatAdvancedIFC
                         {
                             ExportSettingName = conversionJob.IfcSettingsSetName
                         }
                     }
                 };
 
-                var regionSpecifier = conversionJob.Region == "EU" ? Region.EMEA : Region.US;
+                var regionSpecifier = conversionJob.Region == "EU" ? Autodesk.ModelDerivative.Model.Region.EMEA : Autodesk.ModelDerivative.Model.Region.US;
 
                 // specify Job details
                 var jobPayload = new JobPayload()
@@ -541,24 +539,21 @@ namespace RevitToIfcScheduler.Utilities
                 try
                 {
                     var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
-                    var jobResponse = await modelDerivativeClient.JobsApi.StartJobAsync(jobPayload: jobPayload, accessToken: token);
+                    var jobResponse = await modelDerivativeClient.StartJobAsync(jobPayload: jobPayload, accessToken: token);
 
-                    if (jobResponse.HttpResponse.IsSuccessStatusCode)
+                    conversionJob.Status = string.Equals(jobResponse.Result, "created", StringComparison.OrdinalIgnoreCase)
+                               ? ConversionJobStatus.Unchanged
+                               : ConversionJobStatus.Processing;
+
+                    if (conversionJob.Status == ConversionJobStatus.Unchanged)
                     {
-                        conversionJob.Status = jobResponse.HttpResponse.StatusCode == HttpStatusCode.Created
-                                   ? ConversionJobStatus.Unchanged
-                                   : ConversionJobStatus.Processing;
-
-                        if (conversionJob.Status == ConversionJobStatus.Unchanged)
-                        {
-                            conversionJob.JobFinished = DateTime.UtcNow;
-                            conversionJob.AddLog(($"This file has not changed since the last conversion to IFC. {conversionJob.Notes}").Trim());
-                        }
-
-                        BackgroundJob.Enqueue<HangfireJobs>(x => x.PollConversionJob(conversionJob.Id));
-
-                        Log.Information($"Processing Conversion Job: {jobResponse.Content.ToString()} {conversionJob.Id}");
+                        conversionJob.JobFinished = DateTime.UtcNow;
+                        conversionJob.AddLog(($"This file has not changed since the last conversion to IFC. {conversionJob.Notes}").Trim());
                     }
+
+                    BackgroundJob.Enqueue<HangfireJobs>(x => x.PollConversionJob(conversionJob.Id));
+
+                    Log.Information($"Processing Conversion Job: {jobResponse.ToString()} {conversionJob.Id}");
                 }
                 catch (ModelDerivativeApiException ex)
                 {
@@ -613,6 +608,11 @@ namespace RevitToIfcScheduler.Utilities
             catch (Exception exception)
             {
                 var conversionJob = await revitIfcContext.ConversionJobs.FindAsync(conversionJobId);
+                if (conversionJob == null)
+                {
+                    Log.Warning($"BeginConversionJob: ConversionJob {conversionJobId} not found in catch handler; re-throwing original exception.");
+                    throw;
+                }
                 conversionJob.AddLog($"Conversion Failed: {exception.Message}");
                 conversionJob.Status = ConversionJobStatus.Failed;
                 conversionJob.JobFinished = DateTime.UtcNow;
@@ -626,7 +626,7 @@ namespace RevitToIfcScheduler.Utilities
 
         public static async Task<Manifest> GetModelDerivativeManifest(string urn, string token, string region)
         {
-            var regionSpecifier = (region == "EU") ? Region.EMEA : Region.US;
+            var regionSpecifier = (region == "EU") ? Autodesk.ModelDerivative.Model.Region.EMEA : Autodesk.ModelDerivative.Model.Region.US;
             var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
             var response = await modelDerivativeClient.GetManifestAsync(urn, region: regionSpecifier, accessToken: token);
 
@@ -702,7 +702,7 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var regionSpecifier = (conversionJob.Region == "EU") ? Region.EMEA : Region.US;
+                var regionSpecifier = (conversionJob.Region == "EU") ? Autodesk.ModelDerivative.Model.Region.EMEA : Autodesk.ModelDerivative.Model.Region.US;
                 var results = storageLocation.Replace("urn:adsk.objects:os.object:", string.Empty).Split(new char[] { '/' });
                 if (results.Length < 2)
                     throw new InvalidOperationException("Failed to get storage info for the source RVT file.");
@@ -711,37 +711,19 @@ namespace RevitToIfcScheduler.Utilities
                 var objectName = results[1];
 
                 var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
-                var response = await modelDerivativeClient.DerivativesApi.GetDerivativeUrlAsync(derivativeUrn, fileUrn, region: regionSpecifier, accessToken: token);
-                var cloudFrontPolicyName = "CloudFront-Policy";
-                var cloudFrontKeyPairIdName = "CloudFront-Key-Pair-Id";
-                var cloudFrontSignatureName = "CloudFront-Signature";
-
-                var cloudFrontCookies = response.HttpResponse.Headers.GetValues("Set-Cookie");
-
-                var cloudFrontPolicy = cloudFrontCookies.Where(value => value.Contains(cloudFrontPolicyName)).FirstOrDefault()?.Trim().Substring(cloudFrontPolicyName.Length + 1).Split(";").First();
-                var cloudFrontKeyPairId = cloudFrontCookies.Where(value => value.Contains(cloudFrontKeyPairIdName)).FirstOrDefault()?.Trim().Substring(cloudFrontKeyPairIdName.Length + 1).Split(";").First();
-                var cloudFrontSignature = cloudFrontCookies.Where(value => value.Contains(cloudFrontSignatureName)).FirstOrDefault()?.Trim().Substring(cloudFrontSignatureName.Length + 1).Split(";").First();
-
-                var result = response.Content;
-                var downloadUrl = result.Url.ToString();
-                var queryString = "?Key-Pair-Id=" + cloudFrontKeyPairId + "&Signature=" + cloudFrontSignature + "&Policy=" + cloudFrontPolicy;
-                downloadUrl += queryString;
+                var derivativeDownload = await modelDerivativeClient.GetDerivativeUrlAsync(urn: fileUrn, derivativeUrn: derivativeUrn, region: regionSpecifier, accessToken: token);
 
                 string filePath = Path.Combine(_localTempFolder, objectName);
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                var downloadStream = await downloadUrl
-                        .WithOAuthBearerToken(token)
-                        .GetStreamAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
-
-                using (FileStream outputFileStream = new FileStream(filePath, FileMode.Create))
+                using (var fileStream = await _httpClient.GetStreamAsync(derivativeDownload.Url))
+                using (var outputFileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    // downloadStream.Seek(0, SeekOrigin.Begin);
-                    downloadStream.CopyTo(outputFileStream);
+                    await fileStream.CopyToAsync(outputFileStream);
                 }
 
                 var ossClient = new OssClient(_sdkManager);
-                var uploadResponse = await ossClient.Upload(bucketKey, objectName, filePath, token, CancellationToken.None);
+                var uploadResponse = await ossClient.UploadObjectAsync(bucketKey, objectName, filePath, accessToken: token);
 
                 Log.Information("Successful Upload");
 
@@ -768,24 +750,24 @@ namespace RevitToIfcScheduler.Utilities
             var dataManagementClient = new DataManagementClient(_sdkManager);
             var storagePayload = new StoragePayload()
             {
-                Jsonapi = new ModifyFolderPayloadJsonapi()
+                Jsonapi = new JsonApiVersion()
                 {
-                    _Version = VersionNumber._10
+                    VarVersion = JsonApiVersionValue._10
                 },
                 Data = new StoragePayloadData()
                 {
-                    Type = Autodesk.DataManagement.Model.Type.Objects,
+                    Type = TypeObject.Objects,
                     Attributes = new StoragePayloadDataAttributes()
                     {
                         Name = fileName
                     },
                     Relationships = new StoragePayloadDataRelationships()
                     {
-                        Target = new ModifyFolderPayloadDataRelationshipsParent()
+                        Target = new StoragePayloadDataRelationshipsTarget()
                         {
-                            Data = new ModifyFolderPayloadDataRelationshipsParentData()
+                            Data = new StoragePayloadDataRelationshipsTargetData()
                             {
-                                Type = Autodesk.DataManagement.Model.Type.Folders,
+                                Type = TypeFolderItemsForStorage.Folders,
                                 Id = folderId
                             }
                         }
@@ -842,37 +824,37 @@ namespace RevitToIfcScheduler.Utilities
                 var dataManagementClient = new DataManagementClient(_sdkManager);
                 var itemPayload = new ItemPayload()
                 {
-                    Jsonapi = new ModifyFolderPayloadJsonapi()
+                    Jsonapi = new JsonApiVersion()
                     {
-                        _Version = VersionNumber._10
+                        VarVersion = JsonApiVersionValue._10
                     },
                     Data = new ItemPayloadData()
                     {
-                        Type = Autodesk.DataManagement.Model.Type.Items,
+                        Type = TypeItem.Items,
                         Attributes = new ItemPayloadDataAttributes()
                         {
                             DisplayName = name,
                             Extension = new ItemPayloadDataAttributesExtension()
                             {
-                                Type = Autodesk.DataManagement.Model.Type.ItemsautodeskBim360File,
-                                _Version = VersionNumber._10
+                                Type = "items:autodesk.bim360:File",
+                                VarVersion = "1.0"
                             }
                         },
                         Relationships = new ItemPayloadDataRelationships()
                         {
-                            Tip = new FolderPayloadDataRelationshipsParent()
+                            Tip = new ItemPayloadDataRelationshipsTip()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new ItemPayloadDataRelationshipsTipData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Versions,
+                                    Type = TypeVersion.Versions,
                                     Id = "1"
                                 }
                             },
-                            Parent = new FolderPayloadDataRelationshipsParent()
+                            Parent = new ItemPayloadDataRelationshipsParent()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new ItemPayloadDataRelationshipsParentData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Folders,
+                                    Type = TypeFolder.Folders,
                                     Id = folderId
                                 }
                             }
@@ -882,24 +864,24 @@ namespace RevitToIfcScheduler.Utilities
                     {
                         new ItemPayloadIncluded()
                         {
-                            Type = Autodesk.DataManagement.Model.Type.Versions,
+                            Type = TypeVersion.Versions,
                             Id = "1",
                             Attributes = new ItemPayloadIncludedAttributes()
                             {
                                 Name = name,
-                                Extension = new ItemPayloadDataAttributesExtension()
+                                Extension = new ItemPayloadIncludedAttributesExtension()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.VersionsautodeskBim360File,
-                                    _Version = VersionNumber._10
+                                    Type = "versions:autodesk.bim360:File",
+                                    VarVersion = "1.0"
                                 }
                             },
                             Relationships = new ItemPayloadIncludedRelationships()
                             {
-                                Storage = new FolderPayloadDataRelationshipsParent()
+                                Storage = new ItemPayloadIncludedRelationshipsStorage()
                                 {
-                                    Data = new FolderPayloadDataRelationshipsParentData()
+                                    Data = new ItemPayloadIncludedRelationshipsStorageData()
                                     {
-                                        Type = Autodesk.DataManagement.Model.Type.Objects,
+                                        Type = TypeObject.Objects,
                                         Id = objectId
                                     }
                                 }
@@ -935,37 +917,37 @@ namespace RevitToIfcScheduler.Utilities
                 var dataManagementClient = new DataManagementClient(_sdkManager);
                 var versionPayload = new VersionPayload()
                 {
-                    Jsonapi = new ModifyFolderPayloadJsonapi()
+                    Jsonapi = new JsonApiVersion()
                     {
-                        _Version = VersionNumber._10
+                        VarVersion = JsonApiVersionValue._10
                     },
                     Data = new VersionPayloadData()
                     {
-                        Type = Autodesk.DataManagement.Model.Type.Versions,
+                        Type = TypeVersion.Versions,
                         Attributes = new VersionPayloadDataAttributes()
                         {
                             Name = name,
-                            Extension = new RelationshipRefsPayloadDataMetaExtension()
+                            Extension = new VersionPayloadDataAttributesExtension()
                             {
-                                Type = Autodesk.DataManagement.Model.Type.VersionsautodeskBim360File,
-                                _Version = VersionNumber._10
+                                Type = "versions:autodesk.bim360:File",
+                                VarVersion = "1.0"
                             }
                         },
                         Relationships = new VersionPayloadDataRelationships()
                         {
-                            Item = new FolderPayloadDataRelationshipsParent()
+                            Item = new VersionPayloadDataRelationshipsItem()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new VersionPayloadDataRelationshipsItemData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Items,
+                                    Type = TypeItem.Items,
                                     Id = itemId
                                 }
                             },
-                            Storage = new FolderPayloadDataRelationshipsParent()
+                            Storage = new VersionPayloadDataRelationshipsStorage()
                             {
-                                Data = new FolderPayloadDataRelationshipsParentData()
+                                Data = new VersionPayloadDataRelationshipsStorageData()
                                 {
-                                    Type = Autodesk.DataManagement.Model.Type.Objects,
+                                    Type = TypeObject.Objects,
                                     Id = objectId
                                 }
                             }

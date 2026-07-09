@@ -18,17 +18,18 @@ namespace RevitToIfcScheduler.Utilities
         // Returns the URL actually used so the caller can pass it straight to UseProxyToSpaDevelopmentServer.
         // If Vite is already running externally the start is skipped.
         public static string EnsureStarted(
+            IHttpClientFactory httpClientFactory,
             string appRootPath,
             CancellationToken stoppingToken = default,
             string viteServerUrl = DefaultViteServerUrl)
         {
-            if (IsViteReadyAsync(viteServerUrl, CancellationToken.None).GetAwaiter().GetResult())
+            if (IsViteReadyAsync(httpClientFactory, viteServerUrl, CancellationToken.None).GetAwaiter().GetResult())
                 return viteServerUrl;
 
             _viteProcess = StartViteProcess(appRootPath);
             stoppingToken.Register(KillViteProcess);
 
-            WaitForViteAsync(viteServerUrl, stoppingToken).GetAwaiter().GetResult();
+            WaitForViteAsync(httpClientFactory, viteServerUrl, stoppingToken).GetAwaiter().GetResult();
             return viteServerUrl;
         }
 
@@ -68,22 +69,23 @@ namespace RevitToIfcScheduler.Utilities
             catch { /* best-effort cleanup */ }
         }
 
-        private static async Task WaitForViteAsync(string viteServerUrl, CancellationToken cancellationToken)
+        private static async Task WaitForViteAsync(IHttpClientFactory httpClientFactory, string viteServerUrl, CancellationToken cancellationToken)
         {
             var deadline = DateTime.UtcNow.AddMilliseconds(MaxWaitMs);
             while (DateTime.UtcNow < deadline)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (await IsViteReadyAsync(viteServerUrl, cancellationToken))
+                if (await IsViteReadyAsync(httpClientFactory, viteServerUrl, cancellationToken))
                     return;
                 await Task.Delay(500, cancellationToken);
             }
             throw new TimeoutException($"Vite dev server did not start within {MaxWaitMs / 1000} seconds.");
         }
 
-        private static async Task<bool> IsViteReadyAsync(string viteServerUrl, CancellationToken cancellationToken)
+        private static async Task<bool> IsViteReadyAsync(IHttpClientFactory httpClientFactory, string viteServerUrl, CancellationToken cancellationToken)
         {
-            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(1) };
+            var client = httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(1);
             try
             {
                 var response = await client.GetAsync(viteServerUrl, cancellationToken);

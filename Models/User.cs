@@ -119,12 +119,12 @@ namespace RevitToIfcScheduler.Models
             }
         }
 
-        public async Task FetchPermissions(List<Account> accounts, string twoLeggedToken)
+        public async Task FetchPermissions(List<Account> accounts, string twoLeggedToken, IHttpClientFactory httpClientFactory)
         {
             try
             {
                 var permissions = new List<AccountPermissions>();
-                var client = new HttpClient();
+                var client = httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", twoLeggedToken);
 
                 if (AppConfig.AdminEmails.Contains(Email))
@@ -166,8 +166,8 @@ namespace RevitToIfcScheduler.Models
                                 ProjectIds = new List<string>()
                             };
                             
-                            accountPermission.ProjectIds = await GetAuthorizedProjects(account.HubId, twoLeggedToken);
-                            
+                            accountPermission.ProjectIds = await GetAuthorizedProjects(account.HubId, twoLeggedToken, httpClientFactory);
+
                             permissions.Add(accountPermission);
                         }
                         else if (data.role == "project_admin" && data.status == "active")
@@ -181,7 +181,7 @@ namespace RevitToIfcScheduler.Models
                             };
 
                             //Fetch Projects
-                            accountPermission.ProjectIds = await GetAuthorizedProjects(account.HubId, null);
+                            accountPermission.ProjectIds = await GetAuthorizedProjects(account.HubId, null, httpClientFactory);
 
                             permissions.Add(accountPermission);
                         }
@@ -197,14 +197,14 @@ namespace RevitToIfcScheduler.Models
             }
         }
         
-        private async Task<List<string>> GetAuthorizedProjects(string hubId, string twoLeggedToken)
+        private async Task<List<string>> GetAuthorizedProjects(string hubId, string twoLeggedToken, IHttpClientFactory httpClientFactory)
         {
             try
             {
                 var projectIds = new List<string>();
 
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = 
+                var client = httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", twoLeggedToken ?? Token);
 
                 var url = $"https://developer.api.autodesk.com/project/v1/hubs/{hubId}/projects?page[number]=0";

@@ -20,7 +20,6 @@ using System;
 using System.Threading.Tasks;
 using RevitToIfcScheduler.Context;
 using RevitToIfcScheduler.Models;
-using Flurl;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
