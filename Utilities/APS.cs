@@ -390,8 +390,8 @@ namespace RevitToIfcScheduler.Utilities
                 revitIfcContext.ConversionJobs.Update(conversionJob);
                 await revitIfcContext.SaveChangesAsync();
 
-                await ossClient.Download(sourceStorageBucketKey, sourceStorageObjectKey, filePath, token, CancellationToken.None);
-                var uploadResponse = await ossClient.Upload(AppConfig.BucketKey, objectName, filePath, token, CancellationToken.None);
+                await ossClient.DownloadObjectAsync(sourceStorageBucketKey, sourceStorageObjectKey, filePath, accessToken: token);
+                var uploadResponse = await ossClient.UploadObjectAsync(AppConfig.BucketKey, objectName, filePath, accessToken: token);
 
                 Log.Information("File fully uploaded to OSS");
                 conversionJob.AddLog($"File fully uploaded to OSS");
@@ -741,7 +741,7 @@ namespace RevitToIfcScheduler.Utilities
                 }
 
                 var ossClient = new OssClient(_sdkManager);
-                var uploadResponse = await ossClient.Upload(bucketKey, objectName, filePath, token, CancellationToken.None);
+                var uploadResponse = await ossClient.UploadObjectAsync(bucketKey, objectName, filePath, accessToken: token);
 
                 Log.Information("Successful Upload");
 
