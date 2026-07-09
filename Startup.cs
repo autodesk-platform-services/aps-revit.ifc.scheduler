@@ -71,7 +71,6 @@ namespace RevitToIfcScheduler
             AppConfig.TwoLegScope = Configuration.GetValue<string>("TwoLegScope", "account:read data:read data:create data:write bucket:read bucket:create");
             AppConfig.ThreeLegScope = Configuration.GetValue<string>("ThreeLegScope", "user:read data:read data:create");
             AppConfig.IncludeShallowCopies = Configuration.GetValue<bool>("IncludeShallowCopies", true);
-            AppConfig.ApsBaseUrl = Configuration.GetValue<string>("ApsBaseUrl", "https://developer.api.autodesk.com");
             AppConfig.SqlDB = Configuration.GetConnectionString("SqlDB");
             AppConfig.DataProtector = DataProtectionProvider.Create("RevitToIfc").CreateProtector("User");
             AppConfig.BucketKey = Configuration.GetValue<string>("BucketKey", $"{AppConfig.AppId}-{AppConfig.ClientId}".ToLower()).Substring(0, 35);

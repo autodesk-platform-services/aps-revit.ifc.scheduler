@@ -24,7 +24,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Flurl.Http;
 using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +33,7 @@ using Serilog;
 using Autodesk.SDKManager;
 using Autodesk.DataManagement;
 using Autodesk.Oss;
+using Autodesk.Oss.Model;
 using Autodesk.ModelDerivative;
 using Autodesk.ModelDerivative.Model;
 using Autodesk.DataManagement.Model;
@@ -46,6 +46,7 @@ namespace RevitToIfcScheduler.Utilities
     public static class APS
     {
         private static readonly SDKManager _sdkManager = SdkManagerBuilder.Create().Build();
+        private static readonly HttpClient _httpClient = new();
         private static readonly string _localTempFolder = Path.Combine(Directory.GetCurrentDirectory(), "tmp");
         private static readonly string[] allowedFolderTypes = ["normal", "plan"];
 
@@ -194,23 +195,19 @@ namespace RevitToIfcScheduler.Utilities
             try
             {
                 var token = await new TwoLeggedTokenGetter().GetToken();
-                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets/{bucketKey}/details";
+                var ossClient = new OssClient(_sdkManager);
 
-                var response = await url
-                    .WithOAuthBearerToken(token)
-                    .AllowAnyHttpStatus()
-                    .GetAsync();
-
-                if (response.StatusCode == StatusCodes.Status200OK)
+                try
                 {
+                    await ossClient.GetBucketDetailsAsync(bucketKey, accessToken: token);
                     Log.Information("Bucket Exists");
                 }
-                else if (response.StatusCode == StatusCodes.Status404NotFound)
+                catch (OssApiException ex) when (ex.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
                 {
                     Log.Information("Bucket Does not Exist");
                     await CreateTransientBucket(bucketKey, token);
                 }
-                else
+                catch (OssApiException)
                 {
                     Log.Warning("Bucket owned by another ClientID");
                 }
@@ -227,17 +224,13 @@ namespace RevitToIfcScheduler.Utilities
         {
             try
             {
-                var url = $"{AppConfig.ApsBaseUrl}/oss/v2/buckets";
-                var body = new
+                var ossClient = new OssClient(_sdkManager);
+                var regionEnum = region == "EU" ? Autodesk.Oss.Model.Region.EMEA : Autodesk.Oss.Model.Region.US;
+                await ossClient.CreateBucketAsync(regionEnum, new CreateBucketsPayload
                 {
-                    bucketKey,
-                    policyKey = "transient"
-                };
-
-                await url
-                    .WithHeader("x-ads-region", region)
-                    .WithOAuthBearerToken(token)
-                    .PostJsonAsync(body);
+                    BucketKey = bucketKey,
+                    PolicyKey = PolicyKey.Transient
+                }, accessToken: token);
             }
             catch (Exception exception)
             {
@@ -707,21 +700,15 @@ namespace RevitToIfcScheduler.Utilities
                 var objectName = results[1];
 
                 var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
-                var response = await modelDerivativeClient.GetDerivativeUrlAsync(urn: fileUrn, derivativeUrn: derivativeUrn, region: regionSpecifier, accessToken: token);
-
-                var downloadUrl = response.Url;
+                var derivativeDownload = await modelDerivativeClient.GetDerivativeUrlAsync(urn: fileUrn, derivativeUrn: derivativeUrn, region: regionSpecifier, accessToken: token);
 
                 string filePath = Path.Combine(_localTempFolder, objectName);
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                var downloadStream = await downloadUrl
-                        .WithOAuthBearerToken(token)
-                        .GetStreamAsync(completionOption: HttpCompletionOption.ResponseHeadersRead);
-
-                using (FileStream outputFileStream = new FileStream(filePath, FileMode.Create))
+                using (var fileStream = await _httpClient.GetStreamAsync(derivativeDownload.Url))
+                using (var outputFileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    // downloadStream.Seek(0, SeekOrigin.Begin);
-                    downloadStream.CopyTo(outputFileStream);
+                    await fileStream.CopyToAsync(outputFileStream);
                 }
 
                 var ossClient = new OssClient(_sdkManager);
