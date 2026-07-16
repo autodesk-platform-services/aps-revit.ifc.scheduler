@@ -1,4 +1,4 @@
-import {action, observable} from "mobx";
+import {action, makeObservable, observable} from "mobx";
 import dayjs from "dayjs";
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import {isValidCron} from "cron-validator";
@@ -25,6 +25,7 @@ export class Cron {
 
   // @action
   constructor(cronExpression?: string){
+    makeObservable(this);
     if(!cronExpression || !cronExpression.trim()){
       cronExpression = '0 0 * * *'
     }

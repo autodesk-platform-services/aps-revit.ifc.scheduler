@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const Loading = ()=>{
     return <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%'}}>
         <div className="lds-grid">

@@ -1,8 +1,8 @@
-import React, {useMemo, useState} from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import {observer} from "mobx-react-lite";
 import {Cron} from "../Utilities/DataTypes/Cron";
 import './ScheduleSelect.css';
-import {TextField} from "office-ui-fabric-react";
+import {TextField} from "@fluentui/react";
 import {useTranslation} from "react-i18next";
 import Select from "react-select";
 import Creatable from "react-select/creatable";
@@ -46,7 +46,7 @@ const CyclePicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean}
         value={options.find(val=>cron.cycle.indexOf(val.value) > -1)}
         options={options}
         onChange={(item: any)=>cron.setCycle(item.value)}
-        disabled={disabled}
+        isDisabled={disabled}
     />)
 });
 
@@ -78,7 +78,7 @@ const MinutesPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolea
                 return "---"
             }
         }}
-        disabled={disabled}
+        isDisabled={disabled}
     />)
 });
 
@@ -93,7 +93,7 @@ const HoursPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean}
         value={options.find(val=>cron.hours.indexOf(val.value) > -1)}
         options={options}
         onChange={(item: any)=>cron.setHours([item.value])}
-        disabled={disabled}
+        isDisabled={disabled}
     />)
 });
 
@@ -117,7 +117,7 @@ const DaysOfWeekPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boo
             options={options}
             isMulti={true}
             onChange={(selected: any)=>cron.setDaysOfWeek((selected || []).map((val: any)=>val.value))}
-            disabled={disabled}
+            isDisabled={disabled}
         />
     </div>)
 });
@@ -189,7 +189,7 @@ const MonthsPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean
             options={options}
             isMulti={true}
             onChange={(selected: any)=>cron.setMonths((selected || []).map((val: any)=>val.value))}
-            disabled={disabled}
+            isDisabled={disabled}
         />
     </div>)
 });
@@ -212,73 +212,81 @@ const DaysPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean})
     }
 
 
-    return (<div className={"dayPicker"}>
+    return (<div className={"dayPicker"} title={cron.days.join(', ')}>
         <Select
             value={options.filter(val=>cron.days.indexOf(val.value) > -1)}
             options={options}
             isMulti={true}
             onChange={(selected: any)=>cron.setDaysOfMonth((selected || []).map((val: any)=>val.value))}
-            title={cron.days.join(', ')}
-            disabled={disabled}
+            isDisabled={disabled}
         />
     </div>)
 });
 
 const ScheduleHourly = observer(({cron, disabled}: ISchedule)=>{
     const { t } = useTranslation();
-    return (<React.Fragment>
-        <div>{t("at")}</div>
-        <MinutesPicker cron={cron} disabled={disabled}/>
-        <div>{t("minutes after the hour")}</div>
-        <div>{cron?.description() || "---"}</div>
-    </React.Fragment>)
+    return (
+        <Fragment>
+            <div>{t("at")}</div>
+            <MinutesPicker cron={cron} disabled={disabled}/>
+            <div>{t("minutes after the hour")}</div>
+            <div>{cron?.description() || "---"}</div>
+        </Fragment>
+    );
 });
 
 const ScheduleDaily = observer(({cron, disabled}: ISchedule)=>{
     const { t } = useTranslation();
-    return (<React.Fragment>
-        <div>{t("at")}</div>
-
-        <HoursPicker cron={cron} disabled={disabled}/>
-        <MinutesPicker cron={cron} disabled={disabled}/>
-        <div>{cron?.description() || "---"}</div>
-    </React.Fragment>)
+    return (
+        <Fragment>
+            <div>{t("at")}</div>
+            <HoursPicker cron={cron} disabled={disabled}/>
+            <MinutesPicker cron={cron} disabled={disabled}/>
+            <div>{cron?.description() || "---"}</div>
+        </Fragment>
+    );
 });
 
 const ScheduleWeekly = observer(({cron, disabled}: ISchedule)=>{
     const { t } = useTranslation();
-    return (<React.Fragment>
-        <div>{t("on")}</div>
-        <DaysOfWeekPicker cron={cron} disabled={disabled}/>
-        <div>{t("at")}</div>
-        <HoursPicker cron={cron} disabled={disabled}/>
-        <MinutesPicker cron={cron} disabled={disabled}/>
-        <div>{cron?.description() || "---"}</div>
-    </React.Fragment>)
+    return (
+        <Fragment>
+            <div>{t("on")}</div>
+            <DaysOfWeekPicker cron={cron} disabled={disabled}/>
+            <div>{t("at")}</div>
+            <HoursPicker cron={cron} disabled={disabled}/>
+            <MinutesPicker cron={cron} disabled={disabled}/>
+            <div>{cron?.description() || "---"}</div>
+        </Fragment>
+    );
 });
 
 const ScheduleMonthly = observer(({cron, disabled}: ISchedule)=>{
     const { t } = useTranslation();
-    return (<React.Fragment>
-        <div>{t("each")}</div>
-        <DaysPicker cron={cron} disabled={disabled}/>
-        <div>{t("of the month at")}</div>
-        <HoursPicker cron={cron} disabled={disabled}/>
-        <MinutesPicker cron={cron} disabled={disabled}/>
-        <div>{cron?.description() || "---"}</div>
-    </React.Fragment>)
+    return (
+        <Fragment>
+            <div>{t("each")}</div>
+            <DaysPicker cron={cron} disabled={disabled}/>
+            <div>{t("of the month at")}</div>
+            <HoursPicker cron={cron} disabled={disabled}/>
+            <MinutesPicker cron={cron} disabled={disabled}/>
+            <div>{cron?.description() || "---"}</div>
+        </Fragment>
+    );
 });
 
 const ScheduleYearly = observer(({cron, disabled}: ISchedule)=>{
     const { t } = useTranslation();
-    return (<React.Fragment>
-        <div>{t("on the")}</div>
-        <DaysPicker cron={cron} disabled={disabled}/>
-        <div>{t("of")}</div>
-        <MonthsPicker cron={cron} disabled={disabled}/>
-        <div>{t("at")}</div>
-        <HoursPicker cron={cron} disabled={disabled}/>
-        <MinutesPicker cron={cron} disabled={disabled}/>
-        <div>{cron?.description() || "---"}</div>
-    </React.Fragment>)
+    return (
+        <Fragment>
+            <div>{t("on the")}</div>
+            <DaysPicker cron={cron} disabled={disabled}/>
+            <div>{t("of")}</div>
+            <MonthsPicker cron={cron} disabled={disabled}/>
+            <div>{t("at")}</div>
+            <HoursPicker cron={cron} disabled={disabled}/>
+            <MinutesPicker cron={cron} disabled={disabled}/>
+            <div>{cron?.description() || "---"}</div>
+        </Fragment>
+    );
 });

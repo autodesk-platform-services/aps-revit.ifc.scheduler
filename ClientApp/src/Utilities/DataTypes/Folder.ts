@@ -1,5 +1,5 @@
 import {ITreeBase, TreeBase} from "./TreeBase";
-import {action, computed, observable, runInAction} from "mobx";
+import {action, computed, makeObservable, observable, runInAction} from "mobx";
 import {ApiCalls} from "../ApiCalls";
 import {File} from "./File";
 
@@ -11,9 +11,10 @@ export class Folder extends TreeBase{
     @observable private _children: TreeBase[] = [];
     @observable public fetched: boolean = false;
 
-    // constructor(props: IFolder) {
-    //     super(props);
-    // }
+    constructor(props: IFolder) {
+        super(props);
+        makeObservable(this);
+    }
 
     @computed public get children(): TreeBase[]{
         //All children of folders must have unique Ids to use react-checkbox-tree

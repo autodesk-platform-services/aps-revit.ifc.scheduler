@@ -1,5 +1,5 @@
-import React, {Suspense} from 'react';
-import ReactDOM from 'react-dom';
+import { Suspense } from 'react';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import {App} from './App';
 import './Utilities/i18next';
@@ -10,13 +10,16 @@ import {Loading} from "./Components/Loading";
 const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
 
-ReactDOM.render(
+createRoot(rootElement).render(
     <Suspense fallback={<Loading/>}>
-      <BrowserRouter basename={baseUrl}>
+      <BrowserRouter
+        basename={baseUrl}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </BrowserRouter>
-    </Suspense>,
-    rootElement);
+    </Suspense>
+);
 
 
 unregister();

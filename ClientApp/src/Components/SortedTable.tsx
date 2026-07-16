@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {DetailsList, DetailsRow, IColumn, SelectionMode} from "office-ui-fabric-react";
+import { useEffect, useState } from 'react';
+import {DetailsList, DetailsRow, IColumn, SelectionMode} from "@fluentui/react";
 import {observer} from "mobx-react-lite";
 
 interface ISortedTable {

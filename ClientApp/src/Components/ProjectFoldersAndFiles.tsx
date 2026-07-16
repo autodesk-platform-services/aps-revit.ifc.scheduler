@@ -1,6 +1,6 @@
-import React, {useMemo, useState} from 'react';
+import { useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
-import {DefaultButton, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import CheckboxTree from 'react-checkbox-tree';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import {useTranslation} from "react-i18next";
@@ -43,7 +43,7 @@ export const ProjectFoldersAndFiles = observer(({project, checked, setChecked, e
     }, [checked, project.foldersHash])
 
     function expandFolder(expanded: string[]){
-        return new Promise((resolve)=>{
+        return new Promise<void>((resolve)=>{
             setExpanded(expanded);
 
             Promise.all(

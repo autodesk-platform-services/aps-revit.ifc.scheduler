@@ -1,6 +1,6 @@
 import {Folder} from "./Folder";
 import {ApiCalls} from "../ApiCalls";
-import {action, computed, observable, runInAction} from "mobx";
+import {action, computed, makeObservable, observable, runInAction} from "mobx";
 import {Schedule} from "./Schedule";
 import {TreeBase} from "./TreeBase";
 import {appState} from "../../App";
@@ -35,6 +35,7 @@ export class Project{
     public filesHash: {[key: string]: File} = {};
 
     constructor({hubId, id, name}: IProject) {
+        makeObservable(this);
         this.hubId = hubId;
         this.projectId = id;
         this.name = name;
@@ -103,7 +104,7 @@ export class Project{
     }
 
     public expandAllFolders(): Promise<any>{
-        return new Promise(async (resolve)=>{
+        return new Promise<void>(async (resolve)=>{
             while(Object.values(this.foldersHash).filter(val=>!val.fetched).length){
                 const folders = Object.values(this.foldersHash).filter(val=>!val.fetched).slice(0,5);
                 await Promise.all(folders.map(val=>val.fetch()))
@@ -142,7 +143,7 @@ export class Project{
                 runInAction(()=>{
                     this.schedules = this.schedules.concat([new Schedule(result, this)])
                 })
-                appState.history.push(`/projects/${this.id}/schedules/${result.id}`)
+                appState.navigate(`/projects/${this.id}/schedules/${result.id}`)
             })
     }
 
