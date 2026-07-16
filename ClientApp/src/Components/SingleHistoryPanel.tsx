@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import {observer} from 'mobx-react-lite';
-import {useParams} from "react-router";
+import {useParams} from "react-router-dom";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
 import {DefaultButton, PrimaryButton} from "@fluentui/react";
@@ -9,7 +9,7 @@ import {Link} from "react-router-dom";
 
 export const SingleHistoryPanel = observer(()=>{
     const {t} = useTranslation();
-    const {projectId, conversionJobId} = useParams();
+    const {projectId, conversionJobId} = useParams<{projectId: string; conversionJobId: string}>();
 
     const project = useMemo(()=>{
         const currentProject = appState.projects.find(val=>val.id === projectId);

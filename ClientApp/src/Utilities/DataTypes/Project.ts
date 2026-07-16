@@ -142,7 +142,7 @@ export class Project{
                 runInAction(()=>{
                     this.schedules = this.schedules.concat([new Schedule(result, this)])
                 })
-                appState.history.push(`/projects/${this.id}/schedules/${result.id}`)
+                appState.navigate(`/projects/${this.id}/schedules/${result.id}`)
             })
     }
 

@@ -1,4 +1,5 @@
 import {action, observable, runInAction} from "mobx";
+import {NavigateFunction} from "react-router-dom";
 import {Error} from './DataTypes/Error';
 import {User} from "./DataTypes/User";
 import {Account} from "./DataTypes/Account";
@@ -18,7 +19,7 @@ export class AppState{
     @observable public timezones: string[] = [];
     @observable public ready: boolean = false;
 
-    public history: any;
+    public navigate!: NavigateFunction;
 
     @action setErrors(errors: Error[]){
         this.errors = errors;

@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {observer} from 'mobx-react-lite';
 import {SchedulePanel} from "./SchedulePanel";
-import {useParams} from "react-router";
+import {useParams} from "react-router-dom";
 import {ProjectFoldersAndFiles} from "./ProjectFoldersAndFiles";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
@@ -13,7 +13,7 @@ import {Project} from "../Utilities/DataTypes/Project";
 
 export const ProjectPanel = observer(()=>{
     const {t} = useTranslation();
-    const {scheduleId, projectId} = useParams();
+    const {scheduleId, projectId} = useParams<{scheduleId: string; projectId: string}>();
     const [showConvertModal, setShowConvertModal] = useState(false)
 
 

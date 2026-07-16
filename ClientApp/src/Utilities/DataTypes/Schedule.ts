@@ -116,7 +116,7 @@ export class Schedule{
         return ApiCalls.DeleteProjectSchedule({schedule: this})
             .then(()=>{
                 this.project.removeSchedule(this);
-                appState.history.push(`/projects/${this.project.id}`)
+                appState.navigate(`/projects/${this.project.id}`)
             })
     }
 }

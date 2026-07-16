@@ -1,19 +1,19 @@
 import React, {useEffect, useMemo} from 'react';
 import {observer} from 'mobx-react-lite';
-import {useParams} from "react-router";
+import {useParams} from "react-router-dom";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
 import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import { useTranslation } from 'react-i18next';
-import {Link, useHistory} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {SearchableAndSortableTable} from "./SearchableAndSortableTable";
 import {SimpleDate} from "./SimpleDate";
 import {ConversionJob} from "../Utilities/DataTypes/ConversionJob";
 
 export const HistoryPanel = observer(()=>{
     const {t} = useTranslation();
-    const history = useHistory();
-    const {scheduleId, projectId} = useParams();
+    const navigate = useNavigate();
+    const {scheduleId, projectId} = useParams<{scheduleId: string; projectId: string}>();
 
     const project = useMemo(()=>{
         const currentProject = appState.projects.find(val=>val.id === projectId);
@@ -61,7 +61,7 @@ export const HistoryPanel = observer(()=>{
                         {key: 'jobFinished', fieldName: 'jobFinished', minWidth: 100, data: 'dayjs', name: t("Finished"), onRender: (item)=>(<SimpleDate date={item.jobFinished}/>)},
                     ]}
                  onItemInvoked={(item: ConversionJob)=>{
-                     history.push(`/projects/${projectId}/history/${item.id}`)
+                     navigate(`/projects/${projectId}/history/${item.id}`)
                  }}/>
                  <DefaultButton disabled={project?.fullyLoaded} onClick={()=>project?.getConversionJobs()} text={`Load Additional History`}/>
             </div>
