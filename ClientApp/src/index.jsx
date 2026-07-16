@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import {App} from './App';
 import './Utilities/i18next';
 import './custom.css'
@@ -12,10 +12,7 @@ const rootElement = document.getElementById('root');
 
 createRoot(rootElement).render(
     <Suspense fallback={<Loading/>}>
-      <BrowserRouter
-        basename={baseUrl}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <BrowserRouter basename={baseUrl}>
         <App />
       </BrowserRouter>
     </Suspense>

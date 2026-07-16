@@ -1,11 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import {observer} from 'mobx-react-lite';
-import {useParams} from "react-router-dom";
+import {useParams, Link} from "react-router";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
 import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import { useTranslation } from 'react-i18next';
-import {Link} from "react-router-dom";
 
 export const SingleHistoryPanel = observer(()=>{
     const {t} = useTranslation();

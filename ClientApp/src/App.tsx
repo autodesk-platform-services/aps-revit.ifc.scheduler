@@ -1,4 +1,4 @@
-import {Route, Routes, Navigate, useNavigate} from 'react-router-dom';
+import {Route, Routes, Navigate, useNavigate} from 'react-router';
 
 import {AppState} from "./Utilities/AppState";
 import {SettingsPage} from "./Pages/SettingsPage";
