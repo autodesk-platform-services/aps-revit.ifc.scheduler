@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import {observer} from 'mobx-react-lite';
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router";
 import {useTranslation} from "react-i18next";
 import {SearchableAndSortableTable} from "./SearchableAndSortableTable";
 import {appState} from "../App";

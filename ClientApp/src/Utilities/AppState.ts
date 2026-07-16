@@ -1,5 +1,5 @@
 import {action, makeObservable, observable, runInAction} from "mobx";
-import {NavigateFunction} from "react-router-dom";
+import {NavigateFunction} from "react-router";
 import {Error} from './DataTypes/Error';
 import {User} from "./DataTypes/User";
 import {Account} from "./DataTypes/Account";

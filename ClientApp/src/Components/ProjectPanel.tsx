@@ -1,14 +1,13 @@
 import { Fragment, useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
 import {SchedulePanel} from "./SchedulePanel";
-import {useParams} from "react-router-dom";
+import {useParams, Link} from "react-router";
 import {ProjectFoldersAndFiles} from "./ProjectFoldersAndFiles";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
 import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import { useTranslation } from 'react-i18next';
 import {ConvertToIfcNowModal} from "./ConvertToIfcNowModal";
-import {Link} from "react-router-dom";
 import {Project} from "../Utilities/DataTypes/Project";
 
 export const ProjectPanel = observer(()=>{

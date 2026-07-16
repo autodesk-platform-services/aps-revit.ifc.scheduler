@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import {observer} from 'mobx-react-lite';
 import {ProjectsList} from "../Components/ProjectsList";
-import {useParams} from "react-router-dom";
+import {useParams} from "react-router";
 import {NoProjectSelected} from "../Components/NoProjectSelected";
 import {HistoryPanel} from "../Components/HistoryPanel";
 
