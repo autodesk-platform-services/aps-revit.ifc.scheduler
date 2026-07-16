@@ -1,8 +1,8 @@
-import React, {useMemo, useState} from 'react';
+import { useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
-import {DefaultButton, PrimaryButton, TextField} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton, TextField} from "@fluentui/react";
 import {ScheduleSelect} from "./ScheduleSelect";
-import {useHistory, useParams} from "react-router";
+import {useNavigate, useParams} from "react-router";
 import {useTranslation} from "react-i18next";
 import {Schedule} from "../Utilities/DataTypes/Schedule";
 import Creatable from "react-select/creatable";
@@ -15,13 +15,13 @@ import {SimpleDate} from "./SimpleDate";
 
 export const SchedulePanel = observer(({schedule}: {schedule: Schedule})=>{
     const { t } = useTranslation();
-    const history = useHistory();
-    const {projectId} = useParams();
+    const navigate = useNavigate();
+    const {projectId} = useParams<{projectId: string}>();
     const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     function saveChanges(){
         schedule.saveChanges()
-            .then(()=>history.push(`/projects/${projectId}`))
+            .then(()=>navigate(`/projects/${projectId}`))
     }
 
     const timeZones = useMemo(()=>{
@@ -60,8 +60,9 @@ export const SchedulePanel = observer(({schedule}: {schedule: Schedule})=>{
             <ScheduleSelect cron={schedule.cron}/>
 
 
+            <label htmlFor={"timeZone"}>{t("Time Zone")}</label>
             <Select
-                label={"Time Zone"}
+                inputId={"timeZone"}
                 value={timeZones.find(val=>val.value === schedule.timeZoneId)}
                 options={timeZones}
                 onChange={(item: any)=>schedule.setTimeZoneId(item.value)}
@@ -71,7 +72,7 @@ export const SchedulePanel = observer(({schedule}: {schedule: Schedule})=>{
                 <PrimaryButton text={t("Save Changes")} disabled={!schedule.hasChanged || !Cron.IsValid(schedule.cron.toString())}
                                onClick={saveChanges}/>
                 <div style={{flex: 1}}/>
-                <DefaultButton text={t("Cancel")} onClick={()=>history.push(`/projects/${projectId}`)}/>
+                <DefaultButton text={t("Cancel")} onClick={()=>navigate(`/projects/${projectId}`)}/>
             </div>
             <PrimaryButton style={{marginTop: '10px'}} className={"deleteButton"} text={t("Delete Schedule")} onClick={()=>setShowDeleteModal(true)}/>
 

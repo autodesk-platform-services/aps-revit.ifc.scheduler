@@ -1,17 +1,17 @@
-import React, {useMemo} from 'react';
+import { useMemo } from 'react';
 import {observer} from 'mobx-react-lite';
 import {User} from "../Utilities/DataTypes/User";
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import { useTranslation } from 'react-i18next';
-import {DefaultButton} from "office-ui-fabric-react";
+import {DefaultButton} from "@fluentui/react";
 import i18next from "i18next";
 
 export const Header = observer(({user}: {user: User})=>{
     const { t } = useTranslation();
     const languages = useMemo(()=> {
-        return i18next.languages
-            .sort((a, b) => a.localeCompare(b, 'en'))
-            .map(val => ({label: val, value: val, title: val === 'en' ? "English" : val === 'no' ? "Norsk" : val}))
+        return [...i18next.languages]
+            .sort((a: string, b: string) => a.localeCompare(b, 'en'))
+            .map((val: string) => ({label: val, value: val, title: val === 'en' ? "English" : val === 'no' ? "Norsk" : val}))
     }, []);
 
     return <header className={"top"}>

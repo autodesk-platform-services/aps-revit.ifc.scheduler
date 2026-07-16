@@ -1,31 +1,32 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
 import {ProjectsList} from "../Components/ProjectsList";
-import {useParams} from "react-router";
+import {useParams, Link, useNavigate} from "react-router";
 import {NoProjectSelected} from "../Components/NoProjectSelected";
 import {HistoryPanel} from "../Components/HistoryPanel";
 import {useTranslation} from "react-i18next";
-import {Link, useHistory} from "react-router-dom";
 import {appState} from "../App";
 import {Page404} from "./Page404";
-import {DefaultButton, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import {SearchableAndSortableTable} from "../Components/SearchableAndSortableTable";
 import {SimpleDate} from "../Components/SimpleDate";
 import {ConversionJob, IConversionJob} from "../Utilities/DataTypes/ConversionJob";
 import {ApiCalls} from "../Utilities/ApiCalls";
 
 export const ScheduleHistoryPage = observer(()=>{
-    const {projectId, scheduleId} = useParams();
-    return <React.Fragment>
-        <ProjectsList/>
-        {projectId && scheduleId ? <ScheduleHistoryPanel/> : <NoProjectSelected/>}
-    </React.Fragment>
+    const {projectId, scheduleId} = useParams<{projectId: string; scheduleId: string}>();
+    return (
+        <Fragment>
+            <ProjectsList/>
+            {projectId && scheduleId ? <ScheduleHistoryPanel/> : <NoProjectSelected/>}
+        </Fragment>
+    );
 })
 
 const ScheduleHistoryPanel = observer(()=>{
     const {t} = useTranslation();
-    const history = useHistory();
-    const {scheduleId, projectId} = useParams();
+    const navigate = useNavigate();
+    const {scheduleId, projectId} = useParams<{scheduleId: string; projectId: string}>();
     const [conversionJobs, setConversionJobs] = useState<ConversionJob[]>();
     const [limit, setLimit] = useState(50)
     const [offset, setOffset] = useState(0)
@@ -46,7 +47,7 @@ const ScheduleHistoryPanel = observer(()=>{
     useEffect(()=>{
         if(project){
             
-        ApiCalls.GetScheduleConversionJobs({projectId, scheduleId, limit, offset})
+        ApiCalls.GetScheduleConversionJobs({projectId: projectId!, scheduleId: scheduleId!, limit, offset})
             .then((conversionJobs)=>{
                 setConversionJobs(conversionJobs.map(x=>new ConversionJob(x, project)));
             })
@@ -56,7 +57,7 @@ const ScheduleHistoryPanel = observer(()=>{
     useEffect(()=>{
         if(project){
             
-        ApiCalls.GetScheduleConversionJobs({projectId, scheduleId, limit, offset})
+        ApiCalls.GetScheduleConversionJobs({projectId: projectId!, scheduleId: scheduleId!, limit, offset})
             .then((newConversionJobs)=>{
                 setConversionJobs(conversionJobs?.concat(newConversionJobs.map(x=>new ConversionJob(x, project))));
             })
@@ -94,7 +95,7 @@ const ScheduleHistoryPanel = observer(()=>{
                         {key: 'jobFinished', fieldName: 'jobFinished', minWidth: 100, data: 'dayjs', name: t("Finished"), onRender: (item)=>(<SimpleDate date={item.jobFinished}/>)},
                     ]}
                     onItemInvoked={(item: ConversionJob)=>{
-                        history.push(`/projects/${projectId}/history/${item.id}`)
+                        navigate(`/projects/${projectId}/history/${item.id}`)
                     }}/>
                 <DefaultButton disabled={project?.fullyLoaded} onClick={()=>setOffset(offset + limit)} text={`Load Additional History`}/>
             </div>

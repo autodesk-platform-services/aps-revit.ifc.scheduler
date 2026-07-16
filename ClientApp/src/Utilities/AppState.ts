@@ -1,4 +1,5 @@
-import {action, observable, runInAction} from "mobx";
+import {action, makeObservable, observable, runInAction} from "mobx";
+import {NavigateFunction} from "react-router";
 import {Error} from './DataTypes/Error';
 import {User} from "./DataTypes/User";
 import {Account} from "./DataTypes/Account";
@@ -18,14 +19,15 @@ export class AppState{
     @observable public timezones: string[] = [];
     @observable public ready: boolean = false;
 
-    public history: any;
+    public navigate!: NavigateFunction;
 
     @action setErrors(errors: Error[]){
         this.errors = errors;
     }
 
     constructor() {
-        new Promise((resolve, reject)=>{
+        makeObservable(this);
+        new Promise<void>((resolve, reject)=>{
             this.fetchUser()
                 .then(()=>resolve())
                 .catch(()=>{
@@ -58,7 +60,7 @@ export class AppState{
     // }
 
     private fetchUser(){
-        return new Promise((resolve, reject)=>{
+        return new Promise<void>((resolve, reject)=>{
             ApiCalls.fetchUser()
                 .then((user)=>{
                     runInAction(()=>{

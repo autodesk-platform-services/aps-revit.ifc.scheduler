@@ -1,16 +1,14 @@
-import React from 'react';
-import {Route, Switch, Redirect, useHistory} from 'react-router';
+import {Route, Routes, Navigate, useNavigate} from 'react-router';
 
 import {AppState} from "./Utilities/AppState";
 import {SettingsPage} from "./Pages/SettingsPage";
 import {MainPage} from "./Pages/MainPage";
 import {Layout} from "./Components/Layout";
-import { initializeIcons } from 'office-ui-fabric-react/lib/Icons';
+import { initializeIcons } from '@fluentui/react/lib/Icons';
 import {LoadingPage} from "./Pages/LoadingPage";
 import {LoginPage} from "./Pages/LoginPage";
 import {observer} from "mobx-react-lite";
 import {HistoryPage} from "./Pages/HistoryPage";
-import 'mobx-react-lite/batchingForReactDom';
 import {SingleHistoryPage} from "./Pages/SingleHistoryPage";
 import {ScheduleHistoryPage} from "./Pages/ScheduleHistoryPage";
 
@@ -18,7 +16,7 @@ export const appState = new AppState();
 initializeIcons();
 
 export const App = observer(()=>{
-    appState.history = useHistory();
+    appState.navigate = useNavigate();
 
     if(!appState.ready){
         return <LoadingPage/>
@@ -27,16 +25,18 @@ export const App = observer(()=>{
     } else {
         return (
             <Layout>
-                <Switch>
-                    <Route exact path='/projects/:projectId/history/:conversionJobId' component={SingleHistoryPage} />
-                    <Route exact path='/projects/:projectId/history' component={HistoryPage} />
-                    <Route path='/projects/:projectId/schedules/:scheduleId/history' component={ScheduleHistoryPage} />
-                    <Route path='/projects/:projectId?/(schedules)?/:scheduleId?' component={MainPage} />
-                    <Route path='/settings' component={SettingsPage} />
+                <Routes>
+                    <Route path='/projects/:projectId/history/:conversionJobId' element={<SingleHistoryPage/>} />
+                    <Route path='/projects/:projectId/history' element={<HistoryPage/>} />
+                    <Route path='/projects/:projectId/schedules/:scheduleId/history' element={<ScheduleHistoryPage/>} />
+                    <Route path='/projects/:projectId/schedules/:scheduleId' element={<MainPage/>} />
+                    <Route path='/projects/:projectId' element={<MainPage/>} />
+                    <Route path='/projects' element={<MainPage/>} />
+                    <Route path='/settings' element={<SettingsPage/>} />
 
-                    <Redirect exact path='/' to={'/projects'} />
-                    {/*<Route component={Page404}/>*/}
-                </Switch>
+                    <Route path='/' element={<Navigate to='/projects' replace/>} />
+                    {/*<Route path='*' element={<Page404/>} />*/}
+                </Routes>
             </Layout>
         );
     }

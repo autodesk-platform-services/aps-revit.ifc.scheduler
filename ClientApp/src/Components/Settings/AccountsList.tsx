@@ -1,6 +1,5 @@
-import React from 'react';
 import {observer} from "mobx-react-lite";
-import {DetailsList, SelectionMode, Toggle} from "office-ui-fabric-react";
+import {DetailsList, SelectionMode, Toggle} from "@fluentui/react";
 import {appState} from "../../App";
 import {useTranslation} from "react-i18next";
 import {Account} from "../../Utilities/DataTypes/Account";

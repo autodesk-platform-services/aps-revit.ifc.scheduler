@@ -1,4 +1,5 @@
 import {ITreeBase, TreeBase} from "./TreeBase";
+import {makeObservable} from "mobx";
 
 export interface IFile extends ITreeBase {
     showCheckbox?: boolean;
@@ -23,6 +24,7 @@ export class File extends TreeBase{
 
     constructor(props: IFile) {
         super(props);
+        makeObservable(this);
         this.itemId = props.itemId;
         this.folderId = props.folderId || "";
         this.isCompositeDesign = props.isCompositeDesign || false;

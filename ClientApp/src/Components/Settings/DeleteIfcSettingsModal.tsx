@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import { useState } from 'react';
 import {observer} from "mobx-react-lite";
-import {DefaultButton, Dialog, DialogFooter, DialogType, PrimaryButton, Text} from "office-ui-fabric-react";
+import {DefaultButton, Dialog, DialogFooter, DialogType, PrimaryButton, Text} from "@fluentui/react";
 import {Loading} from "../Loading";
 import {ApiCalls} from "../../Utilities/ApiCalls";
 import {IfcSettingsSet} from "../../Utilities/DataTypes/IfcSettingsSet";
