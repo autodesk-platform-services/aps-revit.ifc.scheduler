@@ -103,7 +103,7 @@ export class Project{
     }
 
     public expandAllFolders(): Promise<any>{
-        return new Promise(async (resolve)=>{
+        return new Promise<void>(async (resolve)=>{
             while(Object.values(this.foldersHash).filter(val=>!val.fetched).length){
                 const folders = Object.values(this.foldersHash).filter(val=>!val.fetched).slice(0,5);
                 await Promise.all(folders.map(val=>val.fetch()))

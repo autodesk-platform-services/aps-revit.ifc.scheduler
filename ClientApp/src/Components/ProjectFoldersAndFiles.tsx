@@ -43,7 +43,7 @@ export const ProjectFoldersAndFiles = observer(({project, checked, setChecked, e
     }, [checked, project.foldersHash])
 
     function expandFolder(expanded: string[]){
-        return new Promise((resolve)=>{
+        return new Promise<void>((resolve)=>{
             setExpanded(expanded);
 
             Promise.all(

@@ -25,7 +25,7 @@ export class AppState{
     }
 
     constructor() {
-        new Promise((resolve, reject)=>{
+        new Promise<void>((resolve, reject)=>{
             this.fetchUser()
                 .then(()=>resolve())
                 .catch(()=>{
@@ -58,7 +58,7 @@ export class AppState{
     // }
 
     private fetchUser(){
-        return new Promise((resolve, reject)=>{
+        return new Promise<void>((resolve, reject)=>{
             ApiCalls.fetchUser()
                 .then((user)=>{
                     runInAction(()=>{
