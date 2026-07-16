@@ -1,6 +1,6 @@
 import React from 'react';
 import {appState} from "../App";
-import {PrimaryButton, Text} from "office-ui-fabric-react";
+import {PrimaryButton, Text} from "@fluentui/react";
 import {useTranslation} from "react-i18next";
 
 export const LoginPage = ()=>{

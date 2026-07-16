@@ -3,7 +3,7 @@ import {observer} from 'mobx-react-lite';
 import {useParams} from "react-router";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
-import {DefaultButton, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import { useTranslation } from 'react-i18next';
 import {Link, useHistory} from "react-router-dom";
 import {SearchableAndSortableTable} from "./SearchableAndSortableTable";

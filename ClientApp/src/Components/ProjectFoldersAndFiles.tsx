@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {observer} from 'mobx-react-lite';
-import {DefaultButton, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import CheckboxTree from 'react-checkbox-tree';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import {useTranslation} from "react-i18next";

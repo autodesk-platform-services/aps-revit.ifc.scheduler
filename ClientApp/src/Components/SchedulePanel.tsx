@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {observer} from 'mobx-react-lite';
-import {DefaultButton, PrimaryButton, TextField} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton, TextField} from "@fluentui/react";
 import {ScheduleSelect} from "./ScheduleSelect";
 import {useHistory, useParams} from "react-router";
 import {useTranslation} from "react-i18next";

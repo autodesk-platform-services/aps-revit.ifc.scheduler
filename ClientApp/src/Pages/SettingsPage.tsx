@@ -5,7 +5,7 @@ import {AccountsList} from "../Components/Settings/AccountsList";
 import {LogsList} from "../Components/Settings/LogsList";
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import {useTranslation} from "react-i18next";
-import {DefaultButton} from "office-ui-fabric-react";
+import {DefaultButton} from "@fluentui/react";
 import {NewIfcSettingsModal} from "../Components/Settings/NewIfcSettingsModal";
 
 export const SettingsPage = observer(()=>{

@@ -8,7 +8,7 @@ import {useTranslation} from "react-i18next";
 import {Link, useHistory} from "react-router-dom";
 import {appState} from "../App";
 import {Page404} from "./Page404";
-import {DefaultButton, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import {SearchableAndSortableTable} from "../Components/SearchableAndSortableTable";
 import {SimpleDate} from "../Components/SimpleDate";
 import {ConversionJob, IConversionJob} from "../Utilities/DataTypes/ConversionJob";

@@ -5,7 +5,7 @@ import {AppState} from "./Utilities/AppState";
 import {SettingsPage} from "./Pages/SettingsPage";
 import {MainPage} from "./Pages/MainPage";
 import {Layout} from "./Components/Layout";
-import { initializeIcons } from 'office-ui-fabric-react/lib/Icons';
+import { initializeIcons } from '@fluentui/react/lib/Icons';
 import {LoadingPage} from "./Pages/LoadingPage";
 import {LoginPage} from "./Pages/LoginPage";
 import {observer} from "mobx-react-lite";

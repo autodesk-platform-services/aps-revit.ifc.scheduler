@@ -2,7 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {observer} from "mobx-react-lite";
 import {Cron} from "../Utilities/DataTypes/Cron";
 import './ScheduleSelect.css';
-import {TextField} from "office-ui-fabric-react";
+import {TextField} from "@fluentui/react";
 import {useTranslation} from "react-i18next";
 import Select from "react-select";
 import Creatable from "react-select/creatable";

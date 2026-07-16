@@ -1,6 +1,6 @@
 import React from 'react';
 import {observer} from "mobx-react-lite";
-import {DefaultButton, Dialog, DialogFooter, DialogType, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, Dialog, DialogFooter, DialogType, PrimaryButton} from "@fluentui/react";
 import {Schedule} from "../Utilities/DataTypes/Schedule";
 import { useTranslation } from 'react-i18next';
 

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
-import {IColumn, SearchBox} from "office-ui-fabric-react";
+import {IColumn, SearchBox} from "@fluentui/react";
 import {SortedTable} from "./SortedTable";
 
 interface ISearchableAndSortableTable {

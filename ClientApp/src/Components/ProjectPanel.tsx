@@ -5,7 +5,7 @@ import {useParams} from "react-router";
 import {ProjectFoldersAndFiles} from "./ProjectFoldersAndFiles";
 import {appState} from "../App";
 import {Page404} from "../Pages/Page404";
-import {DefaultButton, PrimaryButton} from "office-ui-fabric-react";
+import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import { useTranslation } from 'react-i18next';
 import {ConvertToIfcNowModal} from "./ConvertToIfcNowModal";
 import {Link} from "react-router-dom";

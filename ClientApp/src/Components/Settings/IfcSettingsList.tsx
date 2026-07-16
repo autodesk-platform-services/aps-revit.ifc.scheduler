@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {observer} from "mobx-react-lite";
-import {DefaultButton, DetailsList, SelectionMode} from "office-ui-fabric-react";
+import {DefaultButton, DetailsList, SelectionMode} from "@fluentui/react";
 import {appState} from "../../App";
 import {useTranslation} from "react-i18next";
 import {DeleteIfcSettingsModal} from "./DeleteIfcSettingsModal";
