@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
 import {ProjectsList} from "../Components/ProjectsList";
 import {useParams} from "react-router";
@@ -16,10 +16,12 @@ import {ApiCalls} from "../Utilities/ApiCalls";
 
 export const ScheduleHistoryPage = observer(()=>{
     const {projectId, scheduleId} = useParams<{projectId: string; scheduleId: string}>();
-    return <React.Fragment>
-        <ProjectsList/>
-        {projectId && scheduleId ? <ScheduleHistoryPanel/> : <NoProjectSelected/>}
-    </React.Fragment>
+    return (
+        <Fragment>
+            <ProjectsList/>
+            {projectId && scheduleId ? <ScheduleHistoryPanel/> : <NoProjectSelected/>}
+        </Fragment>
+    );
 })
 
 const ScheduleHistoryPanel = observer(()=>{

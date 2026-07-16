@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import { Fragment, useState } from 'react';
 import {observer} from "mobx-react-lite";
 import {DefaultButton, Dialog, DialogFooter, DialogType, PrimaryButton} from "@fluentui/react";
 import {Schedule} from "../Utilities/DataTypes/Schedule";
@@ -48,7 +48,7 @@ export const ConvertToIfcNowModal = observer(({project, schedule, show, setShow}
     }
 
     return (
-        <React.Fragment>
+        <Fragment>
             <Dialog
                 hidden={!show}
                 onDismiss={()=>setShow(false)}
@@ -82,6 +82,6 @@ export const ConvertToIfcNowModal = observer(({project, schedule, show, setShow}
                     </form>}
             </Dialog>
             <div id={'fronter'} style={{zIndex: 10000000}}/>
-        </React.Fragment>
-    )
+        </Fragment>
+    );
 })

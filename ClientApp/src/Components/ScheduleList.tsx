@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import {observer} from 'mobx-react-lite';
 import {useNavigate, useParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
@@ -13,8 +13,7 @@ export const ScheduleList = observer(()=>{
     const currentProject = appState.projects.find(val=>val.projectId === projectId);
 
     return (
-        <React.Fragment>
-
+        <Fragment>
             <SearchableAndSortableTable
                 title={t("Schedules")}
                 placeholder={t("Search Schedules")}
@@ -24,8 +23,7 @@ export const ScheduleList = observer(()=>{
                 columns={[{key: 'name', fieldName: 'name', minWidth: 20, name: t("Schedule Name")}]}
                 selectedRowId={scheduleId}
             />
-
             <div style={{borderLeft: '1px solid grey'}}/>
-        </React.Fragment>
-        )
+        </Fragment>
+    );
 })

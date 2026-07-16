@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
 import {SchedulePanel} from "./SchedulePanel";
 import {useParams} from "react-router-dom";
@@ -65,7 +65,7 @@ export const ProjectPanel = observer(()=>{
             </header>
             <section>
                 {schedule ?
-                    <React.Fragment>
+                    <Fragment>
                         <SchedulePanel schedule={schedule}/>
                         <ProjectFoldersAndFiles
                             project={project}
@@ -74,7 +74,7 @@ export const ProjectPanel = observer(()=>{
                             checked={schedule.checked}
                             setChecked={schedule.setChecked}
                         />
-                    </React.Fragment>
+                    </Fragment>
                     :
                     <ProjectFoldersAndFiles
                         project={project}
@@ -85,7 +85,7 @@ export const ProjectPanel = observer(()=>{
                     />
                 }
             </section>
-
             <ConvertToIfcNowModal project={project} schedule={schedule} show={showConvertModal} setShow={setShowConvertModal}/>
-        </div>);
+        </div>
+    );
 })

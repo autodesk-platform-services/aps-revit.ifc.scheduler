@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import { useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
 import {DefaultButton, PrimaryButton} from "@fluentui/react";
 import CheckboxTree from 'react-checkbox-tree';

@@ -1,4 +1,3 @@
-import React from 'react';
 import {observer} from "mobx-react-lite";
 import {DetailsList, SelectionMode, Toggle} from "@fluentui/react";
 import {appState} from "../../App";

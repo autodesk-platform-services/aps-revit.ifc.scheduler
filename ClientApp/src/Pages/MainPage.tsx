@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import {observer} from 'mobx-react-lite';
 import {ProjectsList} from "../Components/ProjectsList";
 import {ProjectPanel} from "../Components/ProjectPanel";
@@ -8,14 +8,16 @@ import {NoProjectSelected} from "../Components/NoProjectSelected";
 
 export const MainPage = observer(()=>{
     const {projectId} = useParams<{projectId: string}>();
-    return <React.Fragment>
-        <ProjectsList/>
-        {projectId
-            ? <React.Fragment>
-                <ScheduleList/>
-                <ProjectPanel/>
-            </React.Fragment>
-            : <NoProjectSelected/>}
+    return (
+        <Fragment>
+            <ProjectsList/>
+            {projectId
+                ? <Fragment>
+                    <ScheduleList/>
+                    <ProjectPanel/>
+                </Fragment>
+                : <NoProjectSelected/>}
 
-    </React.Fragment>
+        </Fragment>
+    );
 })
