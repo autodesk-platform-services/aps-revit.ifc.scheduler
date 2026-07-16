@@ -12,7 +12,10 @@ const rootElement = document.getElementById('root');
 
 createRoot(rootElement).render(
     <Suspense fallback={<Loading/>}>
-      <BrowserRouter basename={baseUrl}>
+      <BrowserRouter
+        basename={baseUrl}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </BrowserRouter>
     </Suspense>
