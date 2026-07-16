@@ -1,4 +1,4 @@
-import {computed, observable} from "mobx";
+import {computed, makeObservable, observable} from "mobx";
 
 export interface IIfcSettingsSet {
     id?: string;
@@ -12,6 +12,7 @@ export class IfcSettingsSet{
     @observable public isDefault: boolean;
 
     constructor({id, name, isDefault}: IIfcSettingsSet) {
+        makeObservable(this);
         this.id = id;
         this.name = name;
         this.isDefault = isDefault;

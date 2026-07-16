@@ -1,4 +1,4 @@
-import {action, computed, observable, runInAction} from "mobx";
+import {action, computed, makeObservable, observable, runInAction} from "mobx";
 import {ApiCalls} from "../ApiCalls";
 
 export interface IAccount{
@@ -15,6 +15,7 @@ export class Account{
     @observable public enabled: boolean;
 
     constructor({id, name, region, enabled}: IAccount) {
+        makeObservable(this);
         this.id = id;
         this.name = name;
         this.region = region;

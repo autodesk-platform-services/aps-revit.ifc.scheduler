@@ -1,5 +1,5 @@
 import {Project} from "./Project";
-import {action, computed, observable} from "mobx";
+import {action, computed, makeObservable, observable} from "mobx";
 import {Cron} from "./Cron";
 import {ApiCalls} from "../ApiCalls";
 import {Folder} from "./Folder";
@@ -39,6 +39,7 @@ export class Schedule{
     @observable private serializedInterface: string;
 
     constructor({id, cron, timeZoneId, name, ifcSettingsName, folderUrns, files, lastStart, lastFileCount}: ISchedule, project: Project) {
+        makeObservable(this);
         this.id = id;
         this.cron = new Cron(cron);
         this.name = name;

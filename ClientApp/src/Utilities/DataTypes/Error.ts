@@ -1,4 +1,4 @@
-import {observable} from "mobx";
+import {makeObservable, observable} from "mobx";
 import {AppState} from "../AppState";
 
 interface IError {
@@ -14,6 +14,7 @@ export class Error{
     private readonly _appState: AppState;
 
     constructor({title, message, appState}: IError){
+        makeObservable(this);
         this._title = title;
         this._message = message;
         this._appState = appState;

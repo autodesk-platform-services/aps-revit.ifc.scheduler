@@ -10,7 +10,6 @@ import {LoadingPage} from "./Pages/LoadingPage";
 import {LoginPage} from "./Pages/LoginPage";
 import {observer} from "mobx-react-lite";
 import {HistoryPage} from "./Pages/HistoryPage";
-import 'mobx-react-lite/batchingForReactDom';
 import {SingleHistoryPage} from "./Pages/SingleHistoryPage";
 import {ScheduleHistoryPage} from "./Pages/ScheduleHistoryPage";
 

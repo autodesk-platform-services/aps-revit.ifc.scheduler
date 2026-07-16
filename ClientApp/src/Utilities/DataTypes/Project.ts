@@ -1,6 +1,6 @@
 import {Folder} from "./Folder";
 import {ApiCalls} from "../ApiCalls";
-import {action, computed, observable, runInAction} from "mobx";
+import {action, computed, makeObservable, observable, runInAction} from "mobx";
 import {Schedule} from "./Schedule";
 import {TreeBase} from "./TreeBase";
 import {appState} from "../../App";
@@ -35,6 +35,7 @@ export class Project{
     public filesHash: {[key: string]: File} = {};
 
     constructor({hubId, id, name}: IProject) {
+        makeObservable(this);
         this.hubId = hubId;
         this.projectId = id;
         this.name = name;

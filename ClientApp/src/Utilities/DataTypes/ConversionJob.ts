@@ -1,6 +1,6 @@
 import {ISchedule, Schedule} from "./Schedule";
 import {Project} from "./Project";
-import {computed} from "mobx";
+import {computed, makeObservable} from "mobx";
 import dayjs, {Dayjs} from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -45,6 +45,7 @@ export class ConversionJob{
     public readonly isCompositeDesign: boolean;
 
     constructor(props: IConversionJob, project: Project) {
+        makeObservable(this);
         this.id = props.id;
         this.ifcSettingsSetName = props.ifcSettingsSetName;
         this.schedule = props.schedule ? new Schedule(props.schedule, project) : undefined;

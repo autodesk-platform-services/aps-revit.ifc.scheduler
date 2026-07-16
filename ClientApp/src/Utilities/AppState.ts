@@ -1,4 +1,4 @@
-import {action, observable, runInAction} from "mobx";
+import {action, makeObservable, observable, runInAction} from "mobx";
 import {NavigateFunction} from "react-router-dom";
 import {Error} from './DataTypes/Error';
 import {User} from "./DataTypes/User";
@@ -26,6 +26,7 @@ export class AppState{
     }
 
     constructor() {
+        makeObservable(this);
         new Promise<void>((resolve, reject)=>{
             this.fetchUser()
                 .then(()=>resolve())
