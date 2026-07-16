@@ -46,7 +46,7 @@ const CyclePicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean}
         value={options.find(val=>cron.cycle.indexOf(val.value) > -1)}
         options={options}
         onChange={(item: any)=>cron.setCycle(item.value)}
-        disabled={disabled}
+        isDisabled={disabled}
     />)
 });
 
@@ -78,7 +78,7 @@ const MinutesPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolea
                 return "---"
             }
         }}
-        disabled={disabled}
+        isDisabled={disabled}
     />)
 });
 
@@ -93,7 +93,7 @@ const HoursPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean}
         value={options.find(val=>cron.hours.indexOf(val.value) > -1)}
         options={options}
         onChange={(item: any)=>cron.setHours([item.value])}
-        disabled={disabled}
+        isDisabled={disabled}
     />)
 });
 
@@ -117,7 +117,7 @@ const DaysOfWeekPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boo
             options={options}
             isMulti={true}
             onChange={(selected: any)=>cron.setDaysOfWeek((selected || []).map((val: any)=>val.value))}
-            disabled={disabled}
+            isDisabled={disabled}
         />
     </div>)
 });
@@ -189,7 +189,7 @@ const MonthsPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean
             options={options}
             isMulti={true}
             onChange={(selected: any)=>cron.setMonths((selected || []).map((val: any)=>val.value))}
-            disabled={disabled}
+            isDisabled={disabled}
         />
     </div>)
 });
@@ -212,14 +212,13 @@ const DaysPicker = observer(({cron, disabled}: {cron: Cron, disabled?: boolean})
     }
 
 
-    return (<div className={"dayPicker"}>
+    return (<div className={"dayPicker"} title={cron.days.join(', ')}>
         <Select
             value={options.filter(val=>cron.days.indexOf(val.value) > -1)}
             options={options}
             isMulti={true}
             onChange={(selected: any)=>cron.setDaysOfMonth((selected || []).map((val: any)=>val.value))}
-            title={cron.days.join(', ')}
-            disabled={disabled}
+            isDisabled={disabled}
         />
     </div>)
 });

@@ -60,8 +60,9 @@ export const SchedulePanel = observer(({schedule}: {schedule: Schedule})=>{
             <ScheduleSelect cron={schedule.cron}/>
 
 
+            <label htmlFor={"timeZone"}>{t("Time Zone")}</label>
             <Select
-                label={"Time Zone"}
+                inputId={"timeZone"}
                 value={timeZones.find(val=>val.value === schedule.timeZoneId)}
                 options={timeZones}
                 onChange={(item: any)=>schedule.setTimeZoneId(item.value)}
