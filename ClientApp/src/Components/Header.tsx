@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {observer} from 'mobx-react-lite';
 import {User} from "../Utilities/DataTypes/User";
-import {Link} from 'react-router-dom';
+import {Link} from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {DefaultButton} from "@fluentui/react";
 import i18next from "i18next";

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import {observer} from 'mobx-react-lite';
 import {DefaultButton, PrimaryButton, TextField} from "@fluentui/react";
 import {ScheduleSelect} from "./ScheduleSelect";
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router";
 import {useTranslation} from "react-i18next";
 import {Schedule} from "../Utilities/DataTypes/Schedule";
 import Creatable from "react-select/creatable";
