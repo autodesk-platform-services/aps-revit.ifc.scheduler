@@ -18,7 +18,6 @@
     "i18next-http-backend": "^4.0.0",
     "mobx": "^6.16.0",
     "mobx-react-lite": "^4.1.1",
-    "oidc-client": "^1.9.0",
     "react": "^19.0.0",
     "react-checkbox-tree": "^2.0.2",
     "react-dom": "^19.0.0",
